@@ -56,3 +56,8 @@ lerna-debug.log*
 # Diretório com erro tipográfico — excluído do rastreamento
 # ============================================================
 supabse/
+
+# ============================================================
+# C.A.O.S v3.9 — locks de ciclo (estado de sessão, não institucional)
+# ============================================================
+rag/locks/
