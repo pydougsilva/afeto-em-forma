@@ -1,5 +1,5 @@
 # r-handoff-codex
-versao: 1.0
+versao: 2.0
 
 ## OBJETIVO
 
@@ -41,6 +41,8 @@ Claude emite handoff quando e somente quando:
 3. snapshot_ref referencia snapshot existente?
 4. dominio está no k-sys-registry-dominios?
 5. ciclo_id é novo (não reutilização de ciclo anterior)?
+6. Se r-git-operacional carregado: commit_type não null?
+7. Se r-git-operacional carregado: branch_sugerido não null?
 ```
 
 Se qualquer verificação falhar: não emitir handoff.
@@ -100,6 +102,8 @@ Checklist de validação:
 □ dominio presente?
 □ agente_executor corresponde a este agente?
 □ ciclo_id não foi processado anteriormente?
+□ Se r-git-operacional ativo: commit_type presente e não null?
+□ Se r-git-operacional ativo: branch_sugerido presente e não null?
 ```
 
 Se qualquer item falhar → retornar HANDOFF_INVALIDO imediatamente.
@@ -139,7 +143,7 @@ Regras do retorno:
 - `ciclo_id` deve ser idêntico ao recebido no handoff
 - `estado` deve ser um de: CONCLUÍDO, FALHOU, HANDOFF_INVALIDO
 - Campos condicionais por estado devem ser preenchidos (ver k-sys-handoff-format)
-- `commit_hash` deve ser null em v3.0 (não há Git ativo)
+- `commit_hash`: null em modo v3.0 | hash real obrigatório em modo v3.5 (r-git-operacional)
 - Retorno vazio ou parcial é inválido — Claude deve rejeitar
 
 ### Campos obrigatórios por estado de retorno
@@ -171,12 +175,21 @@ acao_recomendada:    obrigatório
 
 ### O que Claude faz com cada estado de retorno
 
-**Retorno CONCLUÍDO:**
+**Retorno CONCLUÍDO — modo v3.0 (sem r-git-operacional):**
 1. Verificar se ciclo_id do retorno corresponde ao handoff emitido
 2. Registrar snapshot com estado = CONCLUÍDO
 3. Preencher artefatos_alterados no snapshot
-4. Preencher commit_hash no snapshot (null em v3.0)
+4. Preencher commit_hash no snapshot como null
 5. Apresentar resultado ao usuário
+
+**Retorno CONCLUÍDO — modo v3.5 (com r-git-operacional):**
+1. Verificar se ciclo_id do retorno corresponde ao handoff emitido
+2. Verificar commit_hash e branch presentes no retorno
+3. Registrar snapshot com estado = COMMITADO + commit_hash + branch
+4. Carregar diff do commit via r-git-operacional (situação 1 — divergência etapa 7b)
+5. Comparar diff ↔ instrução autorizada:
+   - Correspondência: estado → VERIFICADO → CONCLUÍDO
+   - Divergência: estado → DIVERGENTE → apresentar ao usuário para decisão
 
 **Retorno FALHOU:**
 1. Verificar ciclo_id
@@ -245,7 +258,11 @@ além do especificado em `dominio`:
 | Evento | Transição de estado |
 |---|---|
 | Claude emite handoff válido | VALIDADO → EXECUTANDO |
-| Codex retorna CONCLUÍDO | EXECUTANDO → CONCLUÍDO |
+| Codex retorna CONCLUÍDO (modo v3.0) | EXECUTANDO → CONCLUÍDO |
+| Codex retorna CONCLUÍDO com commit_hash (modo v3.5) | EXECUTANDO → COMMITADO |
+| Claude valida diff sem divergência (modo v3.5) | COMMITADO → VERIFICADO |
+| Claude detecta divergência no diff (modo v3.5) | COMMITADO → DIVERGENTE |
+| Claude confirma VERIFICADO (modo v3.5) | VERIFICADO → CONCLUÍDO |
 | Codex retorna FALHOU | EXECUTANDO → FALHOU |
 | Claude retorna ciclo de FALHOU | FALHOU → ANALISADO |
 | Codex retorna HANDOFF_INVALIDO | ciclo permanece em VALIDADO |
@@ -253,24 +270,33 @@ além do especificado em `dominio`:
 
 ---
 
-## CAMPOS OPCIONAIS — PREPARAÇÃO v3.5
+## CAMPOS CONDICIONAIS — v3.5
 
-Os campos abaixo existem no protocolo mas são inativos em v3.0.
-Codex recebe como `null` e ignora sem falhar.
+Estes campos têm comportamento diferente em modo v3.0 e modo v3.5.
 
-| Campo no handoff | Uso em v3.5 |
+### Modo v3.0 (sem r-git-operacional)
+
+| Campo | Comportamento |
 |---|---|
-| `commit_type` | prefixo do commit Git institucional |
-| `branch_sugerido` | branch ops/ para a operação |
+| `commit_type` no handoff | null — Codex ignora |
+| `branch_sugerido` no handoff | null — Codex ignora |
+| `commit_hash` no retorno | null — Claude ignora |
 
-| Campo no retorno | Uso em v3.5 |
+### Modo v3.5 (com r-git-operacional carregado)
+
+| Campo | Comportamento |
 |---|---|
-| `commit_hash` | hash do commit criado por Codex |
+| `commit_type` no handoff | obrigatório — Codex cria commit `[tipo](domínio)` |
+| `branch_sugerido` no handoff | obrigatório — Codex cria branch ops/ antes de executar |
+| `commit_hash` no retorno | obrigatório — hash real do commit criado |
 
-Quando v3.5 for implementado:
-- `commit_type` deixa de ser null → Codex cria commit com prefixo correto
-- `commit_hash` é preenchido no retorno → Claude registra no snapshot
-- Transições COMMITADO e VERIFICADO tornam-se ativas
+Violações em modo v3.5:
+
+```
+commit_type = null com r-git-operacional ativo → HANDOFF_INVALIDO
+branch_sugerido = null com r-git-operacional ativo → HANDOFF_INVALIDO
+commit_hash ausente no retorno em v3.5 → retorno inválido → Claude investiga
+```
 
 ---
 
