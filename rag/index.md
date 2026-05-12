@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 8.0
+versao: 9.0
 
 ---
 
@@ -75,12 +75,12 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Script SQL | r/r-sql-idiomatico | k/banco/k-db-tabelas-core | r/r-rls-padrao |
 | Policy RLS | r/r-rls-padrao | k/banco/k-db-funcoes | k/banco/k-db-tabelas-core |
 | Hotfix Checkout | r/r-hotfix-padrao | k/frontend/k-fe-checkout | k/integracao/k-int-supabase-client |
-| Hotfix Admin | r/r-hotfix-padrao | k/frontend/k-fe-admin-* | — |
+| Hotfix Admin | r/r-hotfix-padrao | k/frontend/k-fe-auth-context | — |
 | Hotfix Auth | r/r-hotfix-padrao | k/frontend/k-fe-auth-context | — |
 | Multi-tenant | k/projeto/k-proj-roadmap | k/banco/k-db-funcoes | r/r-rls-padrao |
 | Erro 401/403 | r/r-rls-padrao | k/banco/k-db-funcoes | k/integracao/k-int-supabase-client |
-| Mudança Visual | r/r-design-padrao | k/frontend/k-fe-css-tokens | — |
-| Relatório | r/r-relatorio-padrao | — | — |
+| Mudança Visual | r/r-hotfix-padrao | k/frontend/k-fe-checkout | — |
+| Relatório | k/projeto/k-proj-roadmap | k/projeto/k-proj-identidade | — |
 | Orientação Geral | k/projeto/k-proj-identidade | k/projeto/k-proj-decisoes | — |
 | Domínio com histórico | r/r-recuperacao-contextual | — | — |
 | Orquestração / sessão nova | r/r-orquestracao-caos | — | — |
@@ -93,6 +93,9 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Rollback de ciclo | r/r-rollback-contextual | r/r-estados-ciclo | — |
 | Replay de ciclo | r/r-replay-operacional | r/r-recuperacao-contextual | — |
 | Auditoria Git | r/r-git-operacional | k/sistema/k-sys-persistencia-operacional | — |
+| Entrada novo agente | k/sistema/k-sys-handoff-institucional | r/r-staleness-detection | r/r-telemetria-cognitiva |
+| Staleness / auditoria RAG | r/r-staleness-detection | r/r-module-pruning | — |
+| Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
 
 ---
 
@@ -117,6 +120,10 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-commit-governance | 1.0 | regras de criação de commits institucionais |
 | r-rollback-contextual | 1.0 | rollback técnico + institucional sincronizados |
 | r-replay-operacional | 1.0 | reconstrução e re-execução de ciclos históricos |
+| r-staleness-detection | 1.0 | detecção de snapshots e módulos desatualizados |
+| r-module-pruning | 1.0 | critérios de arquivamento e simplificação de módulos |
+| r-concurrency-guard | 1.0 | prevenção de colisão entre ciclos ativos no mesmo domínio |
+| r-telemetria-cognitiva | 1.0 | registro mínimo de sessão para continuidade entre agentes |
 
 ---
 
@@ -137,6 +144,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | k-sys-handoff-format | 1.0 | estrutura dos documentos handoff e retorno |
 | k-sys-persistencia-operacional | 1.0 | camada Git no C.A.O.S — stack completo |
 | k-sys-governanca-git | 1.0 | branches, commits e convenções operacionais Git |
+| k-sys-handoff-institucional | 1.0 | protocolo de entrada para novo agente executor |
 
 ---
 
@@ -158,6 +166,7 @@ Cada módulo:
 | v2.2 | auto-recuperação contextual | concluído |
 | v3.0 | continuidade operacional entre agentes | **concluído** |
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
+| v3.9 | hardening — staleness, pruning, concurrency, telemetria | **concluído** |
 | v4.0 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — módulos implementados
