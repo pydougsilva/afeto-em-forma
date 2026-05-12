@@ -209,7 +209,7 @@ Regras:
 
 ---
 
-## FLUXO OPERACIONAL — v3.0
+## FLUXO OPERACIONAL — v3.5
 
 ```
 Etapa 0    Detectar gatilho
@@ -257,16 +257,33 @@ Etapa 7    Emitir handoff estruturado para Codex
            → estado_atual: VALIDADO
            → instrução completa
 
-Etapa 8    Codex executa e retorna resultado
-           → CONCLUÍDO: execução bem-sucedida
-           → FALHOU: execução falhou → retornar a etapa 5
-           → HANDOFF_INVALIDO: handoff rejeitado → corrigir e re-emitir
+Etapa 7a   [v3.5 — com r-git-operacional] Codex cria branch ops/ e commit institucional
+           r-commit-governance
+           → branch: ops/[domínio-abreviado]-[YYYYMMDD]
+           → commit: [tipo](domínio) com metadados obrigatórios
+           → Codex retorna commit_hash e branch no resultado
+
+Etapa 7b   [v3.5 — com r-git-operacional] Claude valida diff do commit
+           r-git-operacional
+           → diff carregado e comparado com instrução autorizada
+           → correspondência: ciclo → VERIFICADO → CONCLUÍDO
+           → divergência: ciclo → DIVERGENTE → retornar ao usuário com evidência
+
+Etapa 8    Codex executa e retorna resultado estruturado
+           Modo v3.0: CONCLUÍDO | FALHOU | HANDOFF_INVALIDO
+           Modo v3.5: CONCLUÍDO com commit_hash | FALHOU | HANDOFF_INVALIDO
+
+Etapa 8a   [v3.5 — com r-git-operacional] Usuário autoriza merge ops/ → main [GATE 2]
+           → branch ops/ mergeada para main
+           → branch ops/ deletada após merge
+           → rollback disponível via git revert se necessário
 
 Etapa 9    Registrar snapshot
            r-snapshots-incrementais
            → base: primeira operação ou pós-revert
            → incremental: operações subsequentes no mesmo domínio
            → estado_atual: CONCLUÍDO | FALHOU
+           → commit_hash: preenchido em modo v3.5
 ```
 
 ---
@@ -281,6 +298,10 @@ Quando módulos v3.0 não estão carregados, o sistema opera em modo v2.2.
 | r-handoff-codex | instrução textual informal sem protocolo |
 | r-estados-ciclo | sem rastreamento de estado do ciclo |
 | r-snapshots-incrementais | apenas snapshots base completos |
+| r-git-operacional | sem leitura de histórico Git — etapa 0b pulada |
+| r-commit-governance | sem commit institucional — execução sem evidência |
+| r-rollback-contextual | rollback manual sem sequência formal |
+| r-replay-operacional | replay manual sem reconstrução assistida |
 
 O fallback é degradação controlada — não é falha.
 Sessões sem módulos v3.0 continuam operando normalmente em modo v2.2.
@@ -308,7 +329,7 @@ O executor NÃO deve:
 | v2.1 | persistência operacional — snapshots | concluído |
 | v2.2 | auto-recuperação contextual | concluído |
 | v3.0 | continuidade operacional entre agentes | **concluído** |
-| v3.5 | persistência operacional verificável (Git) | planejado |
+| v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v4.0 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — implementado
@@ -320,12 +341,19 @@ Cinco primitivos implementados:
 - matching por conceito (r-matching-conceito)
 - snapshots incrementais (r-snapshots-incrementais)
 
-### v3.5 — planejado
+### v3.5 — implementado
 
-Git como camada de evidência operacional verificável.
-Depende de: r-estados-ciclo e r-handoff-codex (v3.0 — disponíveis).
-Campos de preparação (commit_hash, commit_type, branch) já existem
-nos módulos v3.0 como campos opcionais inativos.
+Seis módulos implementados:
+- k-sys-persistencia-operacional (camada Git no C.A.O.S — stack completo)
+- k-sys-governanca-git (branches, commits e convenções institucionais)
+- r-git-operacional (leitura de histórico Git e detecção de drift)
+- r-commit-governance (regras de criação de commits institucionais)
+- r-rollback-contextual (rollback técnico + institucional sincronizados)
+- r-replay-operacional (reconstrução e re-execução de ciclos históricos)
+
+Módulos ativados condicionalmente:
+- r-estados-ciclo v2.0 (COMMITADO, VERIFICADO, DIVERGENTE ativos com r-git-operacional)
+- r-handoff-codex v2.0 (commit_type, branch_sugerido, commit_hash ativos)
 
 ### v4.0 — planejado
 

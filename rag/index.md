@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 7.0
+versao: 8.0
 
 ---
 
@@ -58,6 +58,10 @@ Quando módulos v3.0 não estiverem carregados, o sistema opera em modo v2.2:
 | Handoff Claude→Codex | protocolo estruturado (r-handoff-codex) | instrução textual informal |
 | Rastreamento de estados | estados formais (r-estados-ciclo) | sem rastreamento |
 | Snapshots | base + incremental (r-snapshots-incrementais) | somente base |
+| Leitura Git + drift | r-git-operacional ativo | etapa 0b pulada |
+| Commits institucionais | r-commit-governance ativo | sem evidência verificável |
+| Rollback formal | r-rollback-contextual ativo | rollback manual |
+| Replay assistido | r-replay-operacional ativo | replay manual |
 
 O fallback não é erro — é degradação controlada.
 Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
@@ -85,6 +89,10 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Retomada de ciclo | r/r-estados-ciclo | r/r-recuperacao-contextual | k/sistema/k-sys-handoff-format |
 | Matching de domínio | r/r-matching-conceito | k/sistema/k-sys-registry-dominios | — |
 | Snapshot incremental | r/r-snapshots-incrementais | r/r-recuperacao-contextual | — |
+| Commit institucional | r/r-commit-governance | k/sistema/k-sys-governanca-git | r/r-git-operacional |
+| Rollback de ciclo | r/r-rollback-contextual | r/r-estados-ciclo | — |
+| Replay de ciclo | r/r-replay-operacional | r/r-recuperacao-contextual | — |
+| Auditoria Git | r/r-git-operacional | k/sistema/k-sys-persistencia-operacional | — |
 
 ---
 
@@ -101,10 +109,14 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-atualizacao-rag | v1.1 | quando e como evoluir o RAG |
 | r-recuperacao-contextual | 1.1 | recuperação de snapshots históricos entre sessões |
 | r-auto-recuperacao-contextual | 1.0 | detecção automática de domínios e disparo de recovery |
-| r-estados-ciclo | 1.0 | estados formais do ciclo operacional e transições |
-| r-handoff-codex | 1.0 | protocolo de handoff Claude→Codex e retorno |
+| r-estados-ciclo | 2.0 | estados formais do ciclo — COMMITADO/VERIFICADO/DIVERGENTE ativos |
+| r-handoff-codex | 2.0 | protocolo handoff — campos v3.5 ativos condicionalmente |
 | r-matching-conceito | 1.0 | matching por score ponderado de aliases |
 | r-snapshots-incrementais | 1.0 | cadeia de deltas sobre snapshot base |
+| r-git-operacional | 1.0 | leitura e interpretação do histórico Git |
+| r-commit-governance | 1.0 | regras de criação de commits institucionais |
+| r-rollback-contextual | 1.0 | rollback técnico + institucional sincronizados |
+| r-replay-operacional | 1.0 | reconstrução e re-execução de ciclos históricos |
 
 ---
 
@@ -123,6 +135,8 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 |---|---|---|
 | k-sys-registry-dominios | 1.0 | catálogo canônico de domínios com aliases e pesos |
 | k-sys-handoff-format | 1.0 | estrutura dos documentos handoff e retorno |
+| k-sys-persistencia-operacional | 1.0 | camada Git no C.A.O.S — stack completo |
+| k-sys-governanca-git | 1.0 | branches, commits e convenções operacionais Git |
 
 ---
 
@@ -143,7 +157,7 @@ Cada módulo:
 | v2.1 | persistência operacional — snapshots | concluído |
 | v2.2 | auto-recuperação contextual | concluído |
 | v3.0 | continuidade operacional entre agentes | **concluído** |
-| v3.5 | persistência operacional verificável (Git) | planejado |
+| v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v4.0 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — módulos implementados
@@ -157,14 +171,20 @@ Cada módulo:
 | r-matching-conceito | /r | matching por score ponderado |
 | r-snapshots-incrementais | /r | cadeia incremental de deltas |
 
-### v3.5 — módulos previstos
+### v3.5 — módulos implementados
 
-- r/r-git-operacional
-- r/r-commit-governance
-- r/r-rollback-contextual
-- r/r-replay-operacional
-- k/sistema/k-sys-persistencia-operacional
-- k/sistema/k-sys-governanca-git
+| Módulo | Tipo | Capacidade |
+|---|---|---|
+| k-sys-persistencia-operacional | /k | camada Git — stack conceitual |
+| k-sys-governanca-git | /k | convenções de branch e commit |
+| r-git-operacional | /r | leitura Git + detecção de drift |
+| r-commit-governance | /r | governança de commits institucionais |
+| r-rollback-contextual | /r | rollback técnico + institucional |
+| r-replay-operacional | /r | replay assistido de ciclos históricos |
+
+Módulos ativados condicionalmente (Sprint 4):
+- r-estados-ciclo v2.0 (COMMITADO, VERIFICADO, DIVERGENTE com r-git-operacional)
+- r-handoff-codex v2.0 (campos commit_type, branch_sugerido, commit_hash ativos)
 
 ### v4.0 — módulos previstos
 
