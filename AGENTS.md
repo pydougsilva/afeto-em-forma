@@ -330,7 +330,10 @@ O executor NÃO deve:
 | v2.2 | auto-recuperação contextual | concluído |
 | v3.0 | continuidade operacional entre agentes | **concluído** |
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
-| v4.0 | memória semântica institucional (SBERT) | planejado |
+| v3.9 | hardening institucional | **concluído** |
+| v4.0 | replicabilidade institucional | **concluído** |
+| v5.0 | continuidade cognitiva operacional | em design |
+| v5.5 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — implementado
 

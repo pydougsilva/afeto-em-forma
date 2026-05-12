@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 10.0
+versao: 11.0
 
 ---
 
@@ -97,6 +97,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Staleness / auditoria RAG | r/r-staleness-detection | r/r-module-pruning | — |
 | Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
 | Bootstrap novo projeto | k/projeto/k-bootstrap-caos | k/sistema/k-sys-nucleo-minimo | — |
+| Continuidade cognitiva | r/r-continuidade-cognitiva | r/r-telemetria-cognitiva | r/r-staleness-detection |
 | Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
 
 ---
@@ -127,6 +128,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-concurrency-guard | 1.0 | prevenção de colisão entre ciclos ativos no mesmo domínio |
 | r-telemetria-cognitiva | 1.0 | registro mínimo de sessão para continuidade entre agentes |
 | r-anti-burocracia | 1.0 | limites operacionais contra hipercomplexidade |
+| r-continuidade-cognitiva | 1.0 | contratos e métricas de continuidade sistêmica |
 
 ---
 
@@ -193,7 +195,8 @@ Cada módulo:
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v3.9 | hardening — staleness, pruning, concurrency, telemetria | **concluído** |
 | v4.0 | replicabilidade institucional e bootstrap | **concluído** |
-| v4.5 | memória semântica institucional (SBERT) | planejado |
+| v5.0 | continuidade cognitiva operacional | em design |
+| v5.5 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — módulos implementados
 
