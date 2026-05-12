@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 9.0
+versao: 10.0
 
 ---
 
@@ -96,6 +96,8 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Entrada novo agente | k/sistema/k-sys-handoff-institucional | r/r-staleness-detection | r/r-telemetria-cognitiva |
 | Staleness / auditoria RAG | r/r-staleness-detection | r/r-module-pruning | — |
 | Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
+| Bootstrap novo projeto | k/projeto/k-bootstrap-caos | k/sistema/k-sys-nucleo-minimo | — |
+| Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
 
 ---
 
@@ -124,6 +126,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-module-pruning | 1.0 | critérios de arquivamento e simplificação de módulos |
 | r-concurrency-guard | 1.0 | prevenção de colisão entre ciclos ativos no mesmo domínio |
 | r-telemetria-cognitiva | 1.0 | registro mínimo de sessão para continuidade entre agentes |
+| r-anti-burocracia | 1.0 | limites operacionais contra hipercomplexidade |
 
 ---
 
@@ -136,6 +139,27 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 
 ---
 
+## /k/frontend
+
+| Arquivo | Versão | Finalidade |
+|---|---|---|
+| k-fe-app-estrutura | 1.0 | mapa estrutural do App.jsx (2179 linhas) |
+| k-fe-checkout | — | fluxo de checkout e pedidos |
+| k-fe-auth-context | — | contexto de autenticação |
+
+---
+
+## /k/projeto
+
+| Arquivo | Versão | Finalidade |
+|---|---|---|
+| k-proj-identidade | 5.3 | identidade, fase e stack do produto |
+| k-proj-decisoes | — | decisões arquiteturais do produto |
+| k-proj-roadmap | 5.3 | roadmap por fases |
+| k-bootstrap-caos | 1.0 | guia de inicialização do C.A.O.S |
+
+---
+
 ## /k/sistema
 
 | Arquivo | Versão | Finalidade |
@@ -145,6 +169,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | k-sys-persistencia-operacional | 1.0 | camada Git no C.A.O.S — stack completo |
 | k-sys-governanca-git | 1.0 | branches, commits e convenções operacionais Git |
 | k-sys-handoff-institucional | 1.0 | protocolo de entrada para novo agente executor |
+| k-sys-nucleo-minimo | 1.0 | núcleo mínimo replicável do C.A.O.S |
 
 ---
 
@@ -167,7 +192,8 @@ Cada módulo:
 | v3.0 | continuidade operacional entre agentes | **concluído** |
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v3.9 | hardening — staleness, pruning, concurrency, telemetria | **concluído** |
-| v4.0 | memória semântica institucional (SBERT) | planejado |
+| v4.0 | replicabilidade institucional e bootstrap | **concluído** |
+| v4.5 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — módulos implementados
 
@@ -179,6 +205,17 @@ Cada módulo:
 | r-handoff-codex | /r | protocolo handoff Claude→Codex |
 | r-matching-conceito | /r | matching por score ponderado |
 | r-snapshots-incrementais | /r | cadeia incremental de deltas |
+
+### v4.0 — módulos implementados
+
+| Módulo | Tipo | Capacidade |
+|---|---|---|
+| k-fe-app-estrutura | /k | mapa estrutural do App.jsx |
+| r-anti-burocracia | /r | limites operacionais |
+| k-bootstrap-caos | /k | guia de inicialização em novos projetos |
+| k-sys-nucleo-minimo | /k | núcleo mínimo replicável |
+| MANUAL-OPERACIONAL | doc | manual para humanos e agentes |
+| DISTRIBUICAO-GITHUB | doc | política de distribuição institucional |
 
 ### v3.5 — módulos implementados
 
