@@ -1,5 +1,5 @@
 # r-telemetria-cognitiva
-versao: 1.0
+versao: 1.1
 
 ## OBJETIVO
 
@@ -88,6 +88,20 @@ versao_protocolo: 3.5
 | Estado atual do produto | Alta/Média/Baixa | [por quê] |
 | Estado C.A.O.S | Alta/Média/Baixa | [por quê] |
 
+## RISCOS ARQUITETURAIS ATIVOS
+
+Centraliza riscos identificados nesta sessão. Não deixar riscos apenas em "PRÓXIMA SESSÃO"
+ou "LIMITAÇÕES" — qualquer risco operacionalmente relevante deve aparecer aqui também.
+
+### Estruturais
+- [risco de arquitetura de banco, schema, RLS, Auth + severidade: alta/média/baixa]
+
+### De Produto
+- [entrega pendente que é blocker real + impacto se não resolvida + domínio]
+
+### Operacionais
+- [gap de protocolo C.A.O.S, staleness, risco de processo + módulo relacionado]
+
 ## PROBLEMAS IDENTIFICADOS
 
 - [problema 1 + severidade]
@@ -137,11 +151,27 @@ metricas_continuidade:
   dias_desde_ultima_telemetria: [número]
   modulos_carregados_nesta_sessao: [lista]
   dominios_sem_snapshot_operados: [domínios que foram operados mas ainda sem snapshot ao final]
-  snapshots_criados_na_sessao: [IDs dos snapshots criados ou atualizados]
+  snapshots_criados_na_sessao: [IDs dos snapshots criados ou atualizados nesta sessão]
+  snapshots_historicos_ativos: [IDs de sessões anteriores relevantes — não criados nesta sessão]
   nivel_de_continuidade: Pleno | Completo | Estruturado | Basico
   confianca_de_retomada: [percentual estimado — ex: 85%]
   contratos_violados: [lista — vazia se nenhum violado]
+  locks_verificados: vazio | [lista de domínio.lock.yml com ciclo ainda EXECUTANDO]
+  proxima_entrega_prioritaria: [nome da entrega + domínio] | indefinida
 ```
+
+Campos `locks_verificados` e `proxima_entrega_prioritaria` — propósito:
+
+- `locks_verificados`: elimina inferência sobre ausência de ciclos ativos. Um agente que lê apenas
+  a telemetria não precisa mais verificar o filesystem para saber se há ciclo em andamento.
+  Valor `vazio` = confirmação explícita de que `rag/locks/` estava limpo ao encerrar.
+
+- `snapshots_historicos_ativos`: resolve discrepância entre "N/N domínios com snapshot" e os IDs
+  listados em `snapshots_criados_na_sessao`. Snapshots criados em sessões anteriores aparecem aqui,
+  não em `snapshots_criados_na_sessao`.
+
+- `proxima_entrega_prioritaria`: permite retomada orientada sem inferência de prioridade.
+  Se não houver prioridade declarada: usar valor `indefinida` — não omitir o campo.
 
 Nível de continuidade (referência r-continuidade-cognitiva):
 - **Pleno**: todos os módulos + Git + snapshots
@@ -160,8 +190,10 @@ Os seguintes campos são obrigatórios em toda telemetria:
 - `papel`
 - `ARTEFATOS CONSULTADOS` (pelo menos AGENTS.md e index.md)
 - `CONFIANÇA DA RECONSTRUÇÃO` (pelo menos domínio + estado produto)
+- `RISCOS ARQUITETURAIS ATIVOS` (mesmo que vazio por categoria — declarar explicitamente)
 - `MUDANÇAS PROPOSTAS NESTA SESSÃO`
 - `MÉTRICAS DE CONTINUIDADE` (a partir da Fase 5)
+  - inclui obrigatoriamente: `locks_verificados` e `proxima_entrega_prioritaria`
 
 Os demais campos são incluídos quando relevantes.
 
