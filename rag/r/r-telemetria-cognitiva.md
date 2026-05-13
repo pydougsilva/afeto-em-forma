@@ -126,6 +126,31 @@ versao_protocolo: 3.5
 
 ---
 
+## MÉTRICAS DE CONTINUIDADE (v5.0)
+
+A partir da Fase 5, incluir bloco de métricas ao final da telemetria:
+
+```yaml
+metricas_continuidade:
+  tempo_retomada_estimado_min: [minutos estimados para novo agente operar]
+  cobertura_snapshots_pct: [domínios com snapshot / total de domínios operados × 100]
+  dias_desde_ultima_telemetria: [número]
+  modulos_carregados_nesta_sessao: [lista]
+  dominios_sem_snapshot_operados: [domínios que foram operados mas ainda sem snapshot ao final]
+  snapshots_criados_na_sessao: [IDs dos snapshots criados ou atualizados]
+  nivel_de_continuidade: Pleno | Completo | Estruturado | Basico
+  confianca_de_retomada: [percentual estimado — ex: 85%]
+  contratos_violados: [lista — vazia se nenhum violado]
+```
+
+Nível de continuidade (referência r-continuidade-cognitiva):
+- **Pleno**: todos os módulos + Git + snapshots
+- **Completo**: módulos v3.0+ + snapshots (sem verificação Git)
+- **Estruturado**: núcleo mínimo + snapshots (sem matching formal)
+- **Básico**: apenas AGENTS.md (sem continuidade formal)
+
+---
+
 ## CAMPOS OBRIGATÓRIOS
 
 Os seguintes campos são obrigatórios em toda telemetria:
@@ -136,6 +161,7 @@ Os seguintes campos são obrigatórios em toda telemetria:
 - `ARTEFATOS CONSULTADOS` (pelo menos AGENTS.md e index.md)
 - `CONFIANÇA DA RECONSTRUÇÃO` (pelo menos domínio + estado produto)
 - `MUDANÇAS PROPOSTAS NESTA SESSÃO`
+- `MÉTRICAS DE CONTINUIDADE` (a partir da Fase 5)
 
 Os demais campos são incluídos quando relevantes.
 

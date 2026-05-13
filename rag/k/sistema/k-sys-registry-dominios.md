@@ -92,9 +92,10 @@ família: banco/multi-tenant
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - tenants-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -119,9 +120,10 @@ família: banco/auth
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - profiles-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -145,9 +147,10 @@ família: banco/operacional
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - fornadas-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -170,9 +173,10 @@ família: banco/operacional
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - produtos-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -198,9 +202,10 @@ família: banco/operacional
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - pedidos-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -222,9 +227,10 @@ família: banco/operacional
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
+snapshots:
+  - itens-pedido-001
 estado_atual: estável
-última_operação: —
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -250,9 +256,10 @@ família: banco/financeiro
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
-estado_atual: estável
-última_operação: —
+snapshots:
+  - subscriptions-001
+estado_atual: desconhecido
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
@@ -276,9 +283,10 @@ família: banco/plataforma
 módulos_padrão:
   - r/r-rls-padrao
   - k/banco/k-db-tabelas-core
-snapshots: []
-estado_atual: estável
-última_operação: —
+snapshots:
+  - platform-metrics-001
+estado_atual: desconhecido
+última_operação: auditoria-inicial / 2026-05-12
 embedding_path:
 ```
 
