@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 11.0
+versao: 12.0
 
 ---
 
@@ -98,6 +98,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
 | Bootstrap novo projeto | k/projeto/k-bootstrap-caos | k/sistema/k-sys-nucleo-minimo | — |
 | Continuidade cognitiva | r/r-continuidade-cognitiva | r/r-telemetria-cognitiva | r/r-staleness-detection |
+| Primeiro snapshot de domínio | r/r-recuperacao-contextual | k/sistema/k-sys-registry-dominios | — |
 | Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
 
 ---
@@ -195,7 +196,8 @@ Cada módulo:
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v3.9 | hardening — staleness, pruning, concurrency, telemetria | **concluído** |
 | v4.0 | replicabilidade institucional e bootstrap | **concluído** |
-| v5.0 | continuidade cognitiva operacional | em design |
+| v5.0 Sprint 5A/5B | continuidade cognitiva — snapshots + protocolos | **concluído** |
+| v5.0 Sprint 5C | registry v2.0 — dependências + staleness budget | aguarda 30+ ciclos reais |
 | v5.5 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — módulos implementados
@@ -234,6 +236,16 @@ Cada módulo:
 Módulos ativados condicionalmente (Sprint 4):
 - r-estados-ciclo v2.0 (COMMITADO, VERIFICADO, DIVERGENTE com r-git-operacional)
 - r-handoff-codex v2.0 (campos commit_type, branch_sugerido, commit_hash ativos)
+
+### v5.0 Sprint 5A/5B — implementado
+
+| Ação | Artefato | Capacidade |
+|---|---|---|
+| Snapshots base (8 domínios) | r/r-recuperacao-contextual | cobertura 100% dos domínios |
+| Protocolo de Primeiro Snapshot | r/r-recuperacao-contextual | contrato formal de continuidade |
+| Protocolo de Continuidade Mínima | r/r-orquestracao-caos | obrigação ao encerrar sessão |
+| Métricas de Continuidade | r/r-telemetria-cognitiva | campos: nível, cobertura, confiança |
+| Estado pós-Fase 4/5 | k/projeto/k-proj-identidade (v5.4) | identidade operacional atualizada |
 
 ### v4.0 — módulos previstos
 

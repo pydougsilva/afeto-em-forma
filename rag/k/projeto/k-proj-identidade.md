@@ -1,5 +1,5 @@
 # k-proj-identidade
-versao: 5.3
+versao: 5.4
 
 ## NOME
 
@@ -99,14 +99,15 @@ Relatórios:
 ## STATUS
 
 Versão:
-5.3
+5.4
 
 Estado atual:
-single-tenant evoluindo para multi-tenant.
+single-tenant com infraestrutura multi-tenant implementada.
+Produto em Fase 3 (pendente). C.A.O.S em Fase 5 (Sprint 5A/5B concluídas).
 
 ---
 
-## FASES CONCLUÍDAS
+## FASES CONCLUÍDAS — PRODUTO
 
 - Fase 0 → tabelas plataforma
 - Fase 1 → tenant_id + backfill
@@ -114,19 +115,39 @@ single-tenant evoluindo para multi-tenant.
 
 ---
 
-## FASE ATUAL
+## FASE ATUAL — PRODUTO
 
 Fase 3:
 correções pendentes + onboarding multi-tenant.
 
 ---
 
-## PRÓXIMAS ENTREGAS
+## PRÓXIMAS ENTREGAS — PRODUTO
 
 - fn_handle_new_user com tenant_id
 - botão confirmar pedido
 - fn_provision_tenant
 - onboarding de tenants
+- slug routing para acesso multi-tenant por URL
+
+---
+
+## C.A.O.S — ESTADO ATUAL
+
+Versão: 5.0 (Sprint 5A/5B concluídas)
+
+| Fase C.A.O.S | Status |
+|---|---|
+| v3.0 — continuidade entre agentes | concluído |
+| v3.5 — persistência verificável Git | concluído |
+| v3.9 — hardening institucional | concluído |
+| v4.0 — replicabilidade institucional | concluído |
+| v5.0 — continuidade cognitiva (5A/5B) | concluído |
+| v5.0 — Sprint 5C (Registry v2.0) | pendente — após 30+ ciclos reais |
+| v5.5 — memória semântica SBERT | planejado |
+
+Cobertura de snapshots: 9/9 domínios (100%)
+Nível de continuidade: Pleno
 
 ---
 

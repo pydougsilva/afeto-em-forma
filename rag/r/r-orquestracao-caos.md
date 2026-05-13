@@ -183,6 +183,25 @@ deve validar ações antes de mudanças críticas.
 
 ---
 
+# PROTOCOLO DE CONTINUIDADE MÍNIMA
+
+O orquestrador deve verificar ao encerrar toda sessão:
+
+**1. Ciclo executado em domínio com histórico?**
+→ SIM: registrar snapshot incremental antes de encerrar.
+
+**2. Operou em domínio sem snapshots (snapshots: [] no registry)?**
+→ SIM: criar snapshot base mínimo antes de encerrar.
+→ Não precisa ser perfeito. Precisa existir.
+
+**3. Conhecimento operacionalmente relevante gerado na sessão?**
+→ SIM: externalizar em snapshot, telemetria ou módulo.
+→ Conhecimento apenas na memória da sessão não existe institucionalmente.
+
+Regra: sessão com ciclo executado e sem snapshot viola Contrato 1 (r-continuidade-cognitiva).
+
+---
+
 # RESULTADO ESPERADO
 
 O orquestrador deve agir como:

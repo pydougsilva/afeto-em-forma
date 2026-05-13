@@ -321,6 +321,27 @@ O executor NÃO deve:
 
 ---
 
+## CONTINUIDADE MÍNIMA
+
+Todo agente ao encerrar sessão deve verificar:
+
+```
+□ Operou em domínio com snapshots: []?
+  → SIM: criar snapshot base antes de encerrar.
+
+□ Executou ciclo operacional?
+  → SIM: registrar snapshot (base ou incremental) antes de encerrar.
+
+□ Gerou conhecimento operacionalmente relevante?
+  → SIM: externalizar em snapshot ou telemetria antes de encerrar.
+```
+
+Referência: r-continuidade-cognitiva (4 contratos), r-recuperacao-contextual (protocolo de primeiro snapshot).
+
+Violação = próxima sessão paga o custo.
+
+---
+
 ## EVOLUÇÃO ARQUITETURAL
 
 | Versão | Marco | Status |
@@ -332,7 +353,8 @@ O executor NÃO deve:
 | v3.5 | persistência operacional verificável (Git) | **concluído** |
 | v3.9 | hardening institucional | **concluído** |
 | v4.0 | replicabilidade institucional | **concluído** |
-| v5.0 | continuidade cognitiva operacional | em design |
+| v5.0 Sprint 5A/5B | continuidade cognitiva — snapshots + protocolos | **concluído** |
+| v5.0 Sprint 5C | registry v2.0 — dependências + staleness budget | aguarda 30+ ciclos |
 | v5.5 | memória semântica institucional (SBERT) | planejado |
 
 ### v3.0 — implementado
