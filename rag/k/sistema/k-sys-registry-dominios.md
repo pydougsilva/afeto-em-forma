@@ -97,8 +97,9 @@ snapshots:
   - tenants-001
   - tenants-002
   - tenants-003
-estado_atual: desconhecido
-última_operação: auditoria-verificacao-mt / 2026-05-15
+  - tenants-004
+estado_atual: estável
+última_operação: auth-fix / 2026-05-15
 embedding_path:
 ```
 

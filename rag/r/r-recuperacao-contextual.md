@@ -263,6 +263,55 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 
 ---
 
+### public.tenants — snapshot-004
+- id: 004
+- tipo: incremental
+- base: 003
+- tarefa: auth-fix
+- domínio: public.tenants
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    CORREÇÃO DE SNAPSHOT-003 — H5 era parcialmente incorreta:
+    Slug routing estava implementado no App.jsx (T-MT.1b confirmou).
+    O blocker real do login não era apenas o frontend — havia dois blockers:
+    1. vercel.json ausente (resolvido em T-MT.1b)
+    2. auth.users.confirmation_token = NULL para o segundo tenant user (resolvido aqui)
+
+    DIAGNÓSTICO T-MT.2a (2026-05-15):
+    Erro exato do Supabase Auth Go runtime:
+    "Scan error on column index 3, name confirmation_token: converting NULL to string is unsupported"
+    O fn_custom_access_token_hook executou sem erro para ambos os usuários.
+    O 500 ocorria ANTES do hook, no scanner interno do Go.
+
+    FIX APLICADO — T-MT.2b (2026-05-15):
+    UPDATE auth.users SET confirmation_token = ''
+    WHERE confirmation_token IS NULL AND email_confirmed_at IS NOT NULL;
+    Resultado: 1 linha atualizada (dfsilva1903@gmail.com), 0 linhas restantes com NULL.
+
+    CAUSA RAIZ:
+    Versão mais nova do Supabase Auth espera string vazia ('') em confirmation_token
+    após confirmação de email. O segundo tenant user foi criado/confirmado numa
+    versão que deixa NULL. O piloto (jessi.garcez@gmail.com) tinha '' — daí a assimetria.
+
+    ESTADO DO FLUXO MULTI-TENANT COMPLETO:
+    - Slug routing: ativo (vercel.json + App.jsx completo)
+    - Auth hook: operacional para ambos os tenants
+    - confirmation_token: corrigido
+    - Login /teste-padaria: PENDENTE TESTE PELO USUÁRIO
+    → Se last_sign_in_at for atualizado: ciclo multi-tenant completo validado end-to-end
+
+    RISCO RESIDUAL:
+    - Constraint produtos_nome_categoria_unique: verificar antes do próximo ciclo em produtos
+- resultado: sucesso
+- data: 2026-05-15
+- riscos vistos: constraint produtos sem tenant_id (média, não verificada)
+- riscos ativos: |
+    - constraint produtos_nome_categoria_unique pode excluir tenant_id — verificar
+- estado_atual: estável (login pendente de teste empírico)
+- ciclo_ref: ciclo-T-MT.2b-auth-token-fix-20260515
+
+---
+
 ### public.profiles — snapshot-001
 - id: 001
 - tipo: base
