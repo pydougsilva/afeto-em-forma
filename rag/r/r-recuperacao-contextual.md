@@ -196,14 +196,6 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
     O login do usuário admin do segundo tenant não funcionou operacionalmente.
     Causa raiz desconhecida — investigação T-MT.1a pendente.
 
-    Possíveis causas (hipóteses não confirmadas):
-    1. auth.users não criado ou com email não confirmado
-    2. profiles.tenant_id NULL ou associado ao tenant errado
-    3. fn_custom_access_token_hook não injetou tenant_id correto no JWT
-    4. Política RLS hardcoded para tenant piloto (improvável — verificar)
-    5. Frontend sem slug routing: não sabe renderizar segundo tenant
-    6. Combinação de (1) + (5): auth funciona, frontend não resolve contexto
-
     STATUS: primeiro caso empírico de comportamento emergente multi-tenant.
     Não remover segundo tenant antes de concluir investigação T-MT.1a.
 - resultado: pendente
@@ -211,6 +203,63 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 - riscos vistos: login do segundo tenant não funciona operacionalmente (causa desconhecida)
 - riscos ativos: fluxo completo de onboarding+login+operação de novo tenant não homologado
 - estado_atual: desconhecido
+
+---
+
+### public.tenants — snapshot-003
+- id: 003
+- tipo: incremental
+- base: 002
+- tarefa: auditoria-verificacao
+- domínio: public.tenants
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    RESULTADO DE T-MT.1a (2026-05-15): banco está correto para multi-tenant.
+
+    SEGUNDO TENANT IDENTIFICADO:
+    - ID: e6840646-58ad-4ffd-8bb1-9064e3de48f2
+    - Slug: teste-padaria
+    - Nome: Padaria Teste
+    - email_admin: dfsilva1903@gmail.com
+    - Status: trial
+    - Plano: free
+    - Criado em: 2026-05-04
+    - Dados: 1 profile, 1 subscription, 3 produtos, 0 fornadas
+
+    HIPÓTESES H1–H4 REFUTADAS:
+    - email_confirmed_at: 2026-05-04 (confirmado no mesmo dia)
+    - profile: tenant_id correto, role=admin
+    - policies: nenhuma hardcoda UUID do piloto
+    - fn_custom_access_token_hook: injetaria tenant_id correto no próximo login
+
+    HIPÓTESE H5 CONFIRMADA — FALHA É DE PRODUTO/FRONTEND:
+    last_sign_in_at: null — usuário nunca completou um login com sessão registrada.
+    Causa: App.jsx não tem slug routing. Sem /{slug}, o frontend não sabe qual
+    contexto de tenant carregar após login bem-sucedido no Supabase.
+    O login de Supabase auth funcionaria; a aplicação não saberia o que renderizar.
+
+    OBSERVAÇÃO — 3 de 7 produtos esperados:
+    fn_provision_tenant cria 7 seed products. Apenas 3 existem para teste-padaria.
+    Possível causa: constraint UNIQUE(nome, categoria) em produtos não inclui tenant_id.
+    Se confirmado: dois tenants não podem ter produtos com mesmo nome/categoria — blocker
+    para white-label real. Requer verificação da constraint em ciclo posterior.
+
+    SEPARAÇÃO CLARA:
+    INFRAESTRUTURA (correto):
+    - fn_handle_new_user v2, fn_custom_access_token_hook, get_tenant_id(), RLS
+    PRODUTO (precisa de trabalho):
+    - Slug routing /{slug} no App.jsx (blocker para multi-tenant real)
+    - signUp frontend deve passar tenant_id no metadata
+    - Constraint produtos_nome_categoria_unique deve incluir tenant_id
+- resultado: auditoria
+- data: 2026-05-15
+- riscos vistos: slug routing ausente (blocker), constraint produtos sem tenant_id (possível blocker)
+- riscos ativos: |
+    - slug routing /{slug} não implementado — impede multi-tenant real (severidade: alta)
+    - constraint produtos_nome_categoria_unique pode excluir tenant_id (severidade: média — verificar)
+    - signUp frontend não passa tenant_id no metadata para clientes (severidade: alta)
+- estado_atual: desconhecido (banco correto, produto incompleto)
+- ciclo_ref: ciclo-T-MT.1a-tenants-20260515
 
 ---
 
