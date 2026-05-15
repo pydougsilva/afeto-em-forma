@@ -96,8 +96,9 @@ módulos_padrão:
 snapshots:
   - tenants-001
   - tenants-002
+  - tenants-003
 estado_atual: desconhecido
-última_operação: investigacao-multi-tenant / 2026-05-15
+última_operação: auditoria-verificacao-mt / 2026-05-15
 embedding_path:
 ```
 
