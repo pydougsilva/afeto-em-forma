@@ -95,8 +95,9 @@ módulos_padrão:
   - k/banco/k-db-tabelas-core
 snapshots:
   - tenants-001
-estado_atual: estável
-última_operação: auditoria-inicial / 2026-05-12
+  - tenants-002
+estado_atual: desconhecido
+última_operação: investigacao-multi-tenant / 2026-05-15
 embedding_path:
 ```
 

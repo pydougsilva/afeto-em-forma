@@ -164,13 +164,53 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
     Tabela core do multi-tenant. Armazena configuração de cada tenant (UUID PK).
     Toda operação no sistema depende de get_tenant_id() que referencia esta tabela.
     RLS deve ser extremamente restrita — nenhum tenant pode acessar dados de outro.
-    fn_provision_tenant (provisionamento automatizado) está planejada mas não deployada.
-    Onboarding de novos tenants é atualmente manual.
+    fn_provision_tenant (provisionamento automatizado) estava planejada e não deployada na época.
+    Onboarding de novos tenants era manual.
 - resultado: auditoria
 - data: 2026-05-12
 - riscos vistos: fn_provision_tenant ausente torna onboarding manual e suscetível a inconsistência
 - riscos ativos: fn_provision_tenant não deployada — onboarding de novos tenants é manual
 - estado_atual: estável
+
+---
+
+### public.tenants — snapshot-002
+- id: 002
+- tipo: incremental
+- base: 001
+- tarefa: investigacao-multi-tenant
+- domínio: public.tenants
+- módulos: r/r-rls-padrao, k/banco/k-db-tabelas-core
+- decisão: |
+    CORREÇÃO DO RISCO DO SNAPSHOT-001:
+    fn_provision_tenant está deployada (confirmado: criou segundo tenant com sucesso).
+    Onboarding via fn_provision_tenant funciona: cria tenant + subscription + produtos seed.
+
+    DISCOVERY CONFIRMADO — SEGUNDO TENANT:
+    Origem: experimento de onboarding multi-tenant / white-label.
+    Criado com fn_provision_tenant ou manualmente durante validação.
+    Tenant piloto: id=7b5217d1-81ef-464e-83ae-8c8bb3b714f8 (afeto-em-forma) — operacional.
+    Segundo tenant: detalhes aguardam T-MT.1a para documentação completa.
+
+    COMPORTAMENTO EMERGENTE IDENTIFICADO:
+    O login do usuário admin do segundo tenant não funcionou operacionalmente.
+    Causa raiz desconhecida — investigação T-MT.1a pendente.
+
+    Possíveis causas (hipóteses não confirmadas):
+    1. auth.users não criado ou com email não confirmado
+    2. profiles.tenant_id NULL ou associado ao tenant errado
+    3. fn_custom_access_token_hook não injetou tenant_id correto no JWT
+    4. Política RLS hardcoded para tenant piloto (improvável — verificar)
+    5. Frontend sem slug routing: não sabe renderizar segundo tenant
+    6. Combinação de (1) + (5): auth funciona, frontend não resolve contexto
+
+    STATUS: primeiro caso empírico de comportamento emergente multi-tenant.
+    Não remover segundo tenant antes de concluir investigação T-MT.1a.
+- resultado: pendente
+- data: 2026-05-15
+- riscos vistos: login do segundo tenant não funciona operacionalmente (causa desconhecida)
+- riscos ativos: fluxo completo de onboarding+login+operação de novo tenant não homologado
+- estado_atual: desconhecido
 
 ---
 
