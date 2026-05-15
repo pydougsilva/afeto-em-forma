@@ -1,5 +1,5 @@
 # k-db-tabelas-core
-versao: 5.3
+versao: 5.4
 
 ## OBJETIVO
 
@@ -12,22 +12,27 @@ Descrever tabelas operacionais centrais do Afeto em Forma.
 Finalidade:
 armazenar perfil do usuário autenticado.
 
-Colunas principais:
-- id (uuid)
-- user_id (uuid)
+Colunas reais (verificadas via inspeção T6.1a, 2026-05-15):
+- id (uuid) — PK, equivale a auth.users.id
+- nome (text)
+- telefone (text)
+- endereco (text)
+- preferencias (jsonb ou text)
+- tags (text[] ou jsonb)
+- role (text) — customer | admin | platform_admin
+- created_at (timestamptz)
+- updated_at (timestamptz)
 - tenant_id (uuid)
-- nome
-- telefone
-- role
 
 Regras:
-- vinculado ao auth.users
-- usado em joins administrativos
-- role define permissões operacionais
+- vinculado ao auth.users via id (profiles.id = auth.users.id)
+- role define permissões operacionais e nível de acesso RLS
+- tenant_id é populado por fn_handle_new_user v2 no signUp
 
 Observações:
-- joins devem usar:
-profiles!user_id(nome,telefone)
+- joins devem usar: profiles!user_id(nome,telefone)
+- user_id não aparece como coluna separada — profiles.id é o auth.users.id diretamente
+- fn_custom_access_token_hook lê role e tenant_id para injetar no JWT
 
 ---
 
