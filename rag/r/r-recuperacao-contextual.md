@@ -116,6 +116,44 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 
 ---
 
+### public.audit_logs — snapshot-002
+- id: 002
+- tipo: incremental
+- base: 001
+- tarefa: auditoria-verificacao
+- domínio: public.audit_logs
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    Verificação empírica do estado pós-hotfix via SELECT em pg_policies.
+    Estado confirmado em produção (2026-05-15): 2 policies presentes, sem drift.
+
+    Políticas verificadas:
+    1. audit_logs_platform_admin — CMD: ALL
+       qual: is_platform_admin()
+       with_check: is_platform_admin()
+       Significado: platform admin tem acesso irrestrito (leitura e escrita) ao audit_log.
+
+    2. audit_logs_select_tenant_admin — CMD: SELECT
+       qual: ((tenant_id = get_tenant_id()) AND is_tenant_admin())
+       with_check: null
+       Significado: tenant admin só pode ler registros do próprio tenant — não pode modificar trilha.
+
+    Assimetria intencional de comandos (ALL vs SELECT): segurança por design.
+    Platform admin pode modificar audit_log (necessário para operações de plataforma).
+    Tenant admin só lê — a trilha de auditoria é imutável para o tenant.
+
+    Nomes exatos de policy (ausentes no snapshot-001, agora documentados):
+    - audit_logs_platform_admin
+    - audit_logs_select_tenant_admin
+- resultado: sucesso
+- data: 2026-05-15
+- riscos vistos: nenhum novo
+- riscos ativos: nenhum
+- estado_atual: estável
+- ciclo_ref: ciclo-T4.1-audit-logs-20260513
+
+---
+
 ### public.tenants — snapshot-001
 - id: 001
 - tipo: base

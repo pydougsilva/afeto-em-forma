@@ -67,8 +67,9 @@ módulos_padrão:
   - k/banco/k-db-funcoes
 snapshots:
   - audit-logs-001
+  - audit-logs-002
 estado_atual: estável
-última_operação: hotfix-rls / 2026-05-09
+última_operação: auditoria-verificacao / 2026-05-15
 embedding_path:
 ```
 
