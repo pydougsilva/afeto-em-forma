@@ -887,6 +887,12 @@ function AfetoEmFormaApp() {
     return () => { alive = false; };
   }, [routeTenantSlug]);
 
+  useEffect(() => {
+    const r = document.documentElement.style;
+    r.setProperty("--pr", activeTenant?.cor_primaria ?? "#6B3E2E");
+    r.setProperty("--ac", activeTenant?.cor_acento   ?? "#C68A4D");
+  }, [activeTenant]);
+
   /* ══════════════════════════════════════════════════════════
      FETCHES
   ══════════════════════════════════════════════════════════ */
@@ -1302,15 +1308,15 @@ function AfetoEmFormaApp() {
   if (showCadastro) return <CadastroNegocioScreen onClose={() => setShowCadastro(false)} />;
   if (tenantLoading) return (
     <div style={{ minHeight:"100vh", display:"grid", placeItems:"center", color:"var(--mu)", background:"var(--bg)", fontFamily:"'Poppins',sans-serif" }}>
-      <span className="spin">ðŸ”¥</span> Carregando negÃ³cio...
+      <span className="spin">🔥</span> Carregando negócio...
     </div>
   );
   if (tenantErr) return (
     <div style={{ minHeight:"100vh", display:"grid", placeItems:"center", padding:24, textAlign:"center", background:"var(--bg)", color:"var(--tx)", fontFamily:"'Poppins',sans-serif" }}>
       <div>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.8rem", color:"var(--pr)", marginBottom:8 }}>NegÃ³cio nÃ£o encontrado</div>
+        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.8rem", color:"var(--pr)", marginBottom:8 }}>Negócio não encontrado</div>
         <div style={{ color:"var(--mu)", marginBottom:18 }}>{tenantErr}</div>
-        <button className="hdr-rbtn" style={{ background:"var(--pr)", color:"#fff" }} onClick={() => setShowCadastro(true)}>Cadastrar novo negÃ³cio</button>
+        <button className="hdr-rbtn" style={{ background:"var(--pr)", color:"#fff" }} onClick={() => setShowCadastro(true)}>Cadastrar novo negócio</button>
       </div>
     </div>
   );
@@ -1328,8 +1334,14 @@ function AfetoEmFormaApp() {
           <div className="hdr-in">
             <div className="logo">{activeTenant?.nome || "Afeto em Forma"}</div>
             <div className="tagline">Cuidado em cada pedaço.</div>
-            <div className="hdr-orn"><span>✦ SÃO SEBASTIÃO · SP ✦</span></div>
-            <div className="hdr-pill">📍 São Sebastião, SP</div>
+            {activeTenant?.cidade && (
+              <>
+                <div className="hdr-orn">
+                  <span>✦ {activeTenant.cidade.toUpperCase()} · {activeTenant.estado} ✦</span>
+                </div>
+                <div className="hdr-pill">📍 {activeTenant.cidade}, {activeTenant.estado}</div>
+              </>
+            )}
           </div>
           <div className="hdr-right">
             {isLoggedIn ? (<>
