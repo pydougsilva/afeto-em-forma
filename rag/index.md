@@ -1,5 +1,5 @@
 # RAG Index — Afeto em Forma
-versao: 12.1
+versao: 12.2
 
 ---
 
@@ -127,7 +127,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-staleness-detection | 1.0 | detecção de snapshots e módulos desatualizados |
 | r-module-pruning | 1.0 | critérios de arquivamento e simplificação de módulos |
 | r-concurrency-guard | 1.0 | prevenção de colisão entre ciclos ativos no mesmo domínio |
-| r-telemetria-cognitiva | 1.1 | registro mínimo de sessão para continuidade entre agentes |
+| r-telemetria-cognitiva | 1.2 | registro mínimo de sessão para continuidade entre agentes |
 | r-anti-burocracia | 1.0 | limites operacionais contra hipercomplexidade |
 | r-continuidade-cognitiva | 1.0 | contratos e métricas de continuidade sistêmica |
 
@@ -198,6 +198,7 @@ Cada módulo:
 | v4.0 | replicabilidade institucional e bootstrap | **concluído** |
 | v5.0 Sprint 5A/5B | continuidade cognitiva — snapshots + protocolos | **concluído** |
 | v5.0 ajustes T0.1 | telemetria v1.1 — 4 correções estruturais pós-auditoria | **concluído** |
+| v5.0 ajustes T0.1B | telemetria v1.2 + repositório de validações + Modo de Execução | **concluído** |
 | v5.0 Sprint 5C | registry v2.0 — dependências + staleness budget | aguarda 30+ ciclos reais |
 | v5.5 | memória semântica institucional (SBERT) | planejado |
 
@@ -253,6 +254,20 @@ Módulos ativados condicionalmente (Sprint 4):
 - k/sistema/k-sys-camada-semantica
 - r/r-semantic-retrieval
 - r/r-embedding-management
+
+---
+
+## /validacoes
+
+| Arquivo | Finalidade |
+|---|---|
+| CONVENCOES.md | Regras, formato, estados, limites, Modo de Execução, caminho para caos-core |
+| index-validacoes.md | Índice de todas as validações registradas (máx 20) |
+| T0.1-retomada-fria.md | Hipótese de retomada com 3 artefatos — 4 gaps identificados |
+| T0.1B-retomada-pos-ajustes.md | Conversões DIRETA confirmadas — DIRETA≠Correto identificado |
+
+Localização: `rag/docs/validacoes/`
+Propósito: memória de descobertas arquiteturais verificáveis — não telemetria, não snapshots.
 
 ---
 
