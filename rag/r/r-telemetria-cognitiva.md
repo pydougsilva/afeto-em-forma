@@ -1,5 +1,5 @@
 # r-telemetria-cognitiva
-versao: 1.1
+versao: 1.2
 
 ## OBJETIVO
 
@@ -158,7 +158,16 @@ metricas_continuidade:
   contratos_violados: [lista — vazia se nenhum violado]
   locks_verificados: vazio | [lista de domínio.lock.yml com ciclo ainda EXECUTANDO]
   proxima_entrega_prioritaria: [nome da entrega + domínio] | indefinida
+  fase_atual_produto: [Fase N (status) — ex: "Fase 3 (pendente)"] | desconhecida
 ```
+
+Campo `fase_atual_produto` — propósito:
+
+- Preserva contexto do produto mesmo em telemetrias de sessão especializada (CAOS audit,
+  infra, testes). Sem este campo, sessões focadas em C.A.O.S perdem a informação de fase
+  do produto que sessões gerais preservavam. Regressão confirmada em T0.1B (validacao
+  T0.1B-retomada-pos-ajustes.md): Codex confundiu "Fase 4/5 do C.A.O.S" com "fase do produto"
+  porque a telemetria de auditoria não declarava a fase do produto explicitamente.
 
 Campos `locks_verificados` e `proxima_entrega_prioritaria` — propósito:
 
@@ -193,7 +202,7 @@ Os seguintes campos são obrigatórios em toda telemetria:
 - `RISCOS ARQUITETURAIS ATIVOS` (mesmo que vazio por categoria — declarar explicitamente)
 - `MUDANÇAS PROPOSTAS NESTA SESSÃO`
 - `MÉTRICAS DE CONTINUIDADE` (a partir da Fase 5)
-  - inclui obrigatoriamente: `locks_verificados` e `proxima_entrega_prioritaria`
+  - inclui obrigatoriamente: `locks_verificados`, `proxima_entrega_prioritaria`, `fase_atual_produto`
 
 Os demais campos são incluídos quando relevantes.
 
