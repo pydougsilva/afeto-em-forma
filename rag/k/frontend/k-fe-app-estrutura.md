@@ -1,5 +1,5 @@
 # k-fe-app-estrutura
-versao: 1.0
+versao: 1.1
 
 ## OBJETIVO
 
@@ -196,16 +196,27 @@ relLoading        — carregando relatório
 ### 7.5 — Fetches principais (L890–L1095)
 ```
 resolveTenant()   — resolve tenant pelo slug da URL (tabela: tenant_public view)
-fetchFornadas()   — busca fornadas ativas com ocupação (depende de activeTenant.id)
-fetchProdutos()   — busca catálogo (apenasAtivos: true para público, false para admin)
+fetchFornadas()   — busca fornadas ativas com ocupação — já filtra por activeTenant.id ✓
+fetchProdutos()   — busca catálogo — já filtra por activeTenant.id ✓
 fetchPedidos()    — busca pedidos do tenant (admin only)
 fetchPlatformTenants() — busca todos tenants (platform_admin only)
 fetchRelatorios() — agrega KPIs, vendas diárias, top produtos, por fornada
 ```
 
-**FASE 3 TODO (comentários no código):**
-- fetchFornadas: adicionar `.eq("tenant_id", tenantId)` quando slug routing estiver completo
-- fetchProdutos: mesma adição para acesso público por slug
+**FASE 3 CONCLUÍDO (T-MT.1b, 2026-05-15):**
+- fetchFornadas: já tem `.eq("tenant_id", activeTenant.id)` — IMPLEMENTADO
+- fetchProdutos: já tem `.eq("tenant_id", activeTenant.id)` — IMPLEMENTADO
+- vercel.json: SPA rewrite ativa slug routing em produção ✓
+- useEffect CSS vars: cores de marca dinâmicas por tenant ✓
+
+**Novo useEffect após resolveTenant (~L888-893):**
+```javascript
+useEffect(() => {
+  const r = document.documentElement.style;
+  r.setProperty("--pr", activeTenant?.cor_primaria ?? "#6B3E2E");
+  r.setProperty("--ac", activeTenant?.cor_acento   ?? "#C68A4D");
+}, [activeTenant]);
+```
 
 ### 7.6 — Actions (L1121–L1270)
 ```
@@ -270,10 +281,14 @@ A paleta usa variáveis CSS: `--pr` (cor primária), `--ac` (acento), `--mu` (mu
 
 ---
 
-## PENDÊNCIAS CONHECIDAS (2026-05-12)
+## PENDÊNCIAS CONHECIDAS (atualizado 2026-05-15)
 
 | Item | Localização | Status |
 |---|---|---|
-| Routing por slug para acesso público | fetchFornadas L898, fetchProdutos L913 | TODO Fase 3 |
+| Routing por slug para acesso público | fetchFornadas/Produtos + vercel.json | **CONCLUÍDO** T-MT.1b |
+| Branding white-label por tenant (cores) | useEffect CSS vars | **CONCLUÍDO** T-MT.1b |
+| Header localização dinâmica | activeTenant.cidade/estado | **CONCLUÍDO** T-MT.1b |
 | Integração fn_provision_tenant | CadastroNegocioScreen L~750 | Edge Function existe, fluxo UI parcial |
-| Botão confirmar pedido (cliente) | AfetoEmFormaApp UI | TODO Fase 3 (k-proj-identidade) |
+| Botão confirmar pedido (cliente) | AfetoEmFormaApp UI | TODO Fase 3 |
+| signUp de clientes com tenant_id via slug | AuthScreen + AuthProvider | IMPLEMENTADO — aguarda teste em produção |
+| Constraint produtos (nome, categoria) sem tenant_id | banco — verificar | VERIFICAR antes do próximo ciclo em produtos |
