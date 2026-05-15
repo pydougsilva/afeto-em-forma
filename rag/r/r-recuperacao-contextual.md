@@ -184,12 +184,59 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
     Perfis de usuário vinculados ao auth.users via user_id. Campos: id, user_id, tenant_id, nome, telefone, role.
     role define admin vs cliente. RLS via get_tenant_id().
     CRÍTICO: joins DEVEM usar profiles!user_id(nome,telefone) — não profiles.id.
-    fn_handle_new_user com tenant_id está pendente — novos usuários criados sem tenant_id.
+    fn_handle_new_user com tenant_id estava pendente ao criar este snapshot.
 - resultado: auditoria
 - data: 2026-05-12
 - riscos vistos: fn_handle_new_user sem tenant_id, inconsistência entre role e permissões Auth
 - riscos ativos: fn_handle_new_user sem suporte a tenant_id — novos usuários não recebem tenant_id automaticamente
 - estado_atual: estável
+
+---
+
+### public.profiles — snapshot-002
+- id: 002
+- tipo: incremental
+- base: 001
+- tarefa: auditoria-verificacao
+- domínio: public.profiles
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    Verificação empírica via inspeção arquitetural (T6.1a, 2026-05-15).
+
+    RISCO ATIVO DO SNAPSHOT-001 RESOLVIDO:
+    fn_handle_new_user v2 está deployada em produção.
+    Confirmado: lê tenant_id de raw_user_meta_data + fallback email_admin.
+    0 profiles com tenant_id NULL (nenhum usuário afetado).
+    Re-login não necessário.
+
+    CADEIA CONFIRMADA OPERACIONAL:
+    fn_handle_new_user v2 → profiles.tenant_id preenchido
+    → fn_custom_access_token_hook → JWT app_metadata.tenant_id injetado
+    → get_tenant_id() → RLS funciona
+
+    SCHEMA REAL DE PROFILES (snapshot-001 incompleto):
+    Colunas: id, nome, telefone, endereco, preferencias, tags, role, created_at, updated_at, tenant_id
+    Nota: k-db-tabelas-core.md desatualizado — não documenta endereco, preferencias, tags.
+
+    TRIGGER CONFIRMADO:
+    trg_on_auth_user_created (AFTER INSERT ON auth.users) → fn_handle_new_user()
+
+    DISCOVERY — SEGUNDO TENANT:
+    2 tenants encontrados em produção (esperado: 1).
+    Tenant piloto confirmado: id=7b5217d1-81ef-464e-83ae-8c8bb3b714f8, slug=afeto-em-forma.
+    Segundo tenant: dados não retornados na inspeção. Origem provável: teste de fn_provision_tenant.
+    Requer confirmação do usuário antes de qualquer ação.
+
+    LIÇÃO ARQUITETURAL:
+    Snapshots de auditoria-inicial refletem estado arquitetural CONHECIDO na época de criação —
+    não estado verificado em produção. Sempre executar verificação antes de deploy baseado em
+    risco_ativo de snapshot tipo auditoria-inicial.
+- resultado: sucesso
+- data: 2026-05-15
+- riscos vistos: segundo tenant de origem desconhecida em produção; k-db-tabelas-core.md desatualizado
+- riscos ativos: segundo tenant requer investigação (origem e estado não confirmados)
+- estado_atual: estável
+- ciclo_ref: ciclo-T6.1a-profiles-inspect-20260515
 
 ---
 

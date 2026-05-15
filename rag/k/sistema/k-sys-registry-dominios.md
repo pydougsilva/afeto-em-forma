@@ -123,8 +123,9 @@ módulos_padrão:
   - k/banco/k-db-tabelas-core
 snapshots:
   - profiles-001
+  - profiles-002
 estado_atual: estável
-última_operação: auditoria-inicial / 2026-05-12
+última_operação: auditoria-verificacao / 2026-05-15
 embedding_path:
 ```
 
