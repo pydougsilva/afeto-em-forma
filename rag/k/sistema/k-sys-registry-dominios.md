@@ -296,6 +296,28 @@ embedding_path:
 
 ---
 
+### frontend/App.jsx
+
+```
+id: frontend/App.jsx
+canônico: frontend/App.jsx
+aliases:
+  - App.jsx          (peso: 1.0)
+  - frontend         (peso: 0.9)
+  - app              (peso: 0.7)
+  - componente       (peso: 0.5)
+família: frontend/produto
+módulos_padrão:
+  - k/frontend/k-fe-app-estrutura
+snapshots:
+  - frontend-App.jsx-001
+estado_atual: estável
+última_operação: multi-tenant-white-label / 2026-05-15
+embedding_path:
+```
+
+---
+
 ## COMO ADICIONAR NOVO DOMÍNIO
 
 Quando uma operação é realizada pela primeira vez em um domínio não registrado:
@@ -329,6 +351,7 @@ Não registrar alias com peso < 0.5 — aumenta falsos positivos.
 | banco/operacional | public.fornadas, public.produtos, public.pedidos, public.itens_pedido |
 | banco/financeiro | public.subscriptions |
 | banco/plataforma | public.platform_metrics |
+| frontend/produto | frontend/App.jsx |
 
 ---
 

@@ -142,7 +142,7 @@ O blocker de produto é o frontend.
 
 ## C.A.O.S — ESTADO ATUAL
 
-Versão: 5.0 (Sprint 5A/5B concluídas)
+Versão: 5.0 (Sprint 5A/5B + ciclos T4.1, T6.1a, T-MT.1a/1b concluídos)
 
 | Fase C.A.O.S | Status |
 |---|---|
@@ -154,8 +154,20 @@ Versão: 5.0 (Sprint 5A/5B concluídas)
 | v5.0 — Sprint 5C (Registry v2.0) | pendente — após 30+ ciclos reais |
 | v5.5 — memória semântica SBERT | planejado |
 
-Cobertura de snapshots: 9/9 domínios (100%)
+Cobertura de snapshots: 10 domínios (9 banco + 1 frontend)
 Nível de continuidade: Pleno
+Sprint 5C: 4/30 ciclos reais acumulados
+
+## MARCO DA FASE 5
+
+T-MT.1b (2026-05-15): white-label multi-tenant ativado em produção.
+A infraestrutura multi-tenant (banco + auth + RLS) estava correta.
+O blocker era a ausência de SPA routing no hosting (vercel.json).
+Cada tenant agora tem:
+- URL própria: /{slug}
+- Nome de marca dinâmico: activeTenant.nome
+- Localização dinâmica: activeTenant.cidade/estado
+- Cores de marca dinâmicas: cor_primaria/cor_acento → CSS variables
 
 ---
 

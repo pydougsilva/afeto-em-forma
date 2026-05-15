@@ -467,6 +467,45 @@ Após cada ciclo homologado e executado:
 
 ---
 
+### frontend/App.jsx — snapshot-001
+- id: 001
+- tipo: base
+- tarefa: multi-tenant-white-label
+- domínio: frontend/App.jsx
+- módulos: k/frontend/k-fe-app-estrutura
+- decisão: |
+    Ciclo T-MT.1b ativou o white-label multi-tenant (2026-05-15).
+
+    O slug routing JÁ ESTAVA IMPLEMENTADO antes deste ciclo:
+    - getRouteTenantSlug(): URL → slug
+    - resolveTenant(): slug → activeTenant via tenant_public view
+    - fetchFornadas/fetchProdutos: .eq("tenant_id", activeTenant.id)
+    - AuthScreen: tenantId={activeTenant?.id}
+    - signUp: passa tenant_id em raw_user_meta_data
+
+    BLOCKER ERA APENAS o vercel.json ausente (SPA hosting config).
+    Sem ele, /{slug} retornava 404 do CDN antes do React carregar.
+
+    Mudanças aplicadas:
+    1. vercel.json: SPA rewrite — /{slug} não retorna 404
+    2. Header: cidade/estado dinâmicos via activeTenant.cidade/estado
+    3. CSS variables: useEffect([activeTenant]) aplica cor_primaria/cor_acento
+       com fallback para cores padrão do piloto quando null
+    4. Encoding: strings de loading/erro corrigidas (🔥, negócio, não encontrado)
+
+    Lição: a Fase 3 estava mais avançada do que os snapshots indicavam.
+    O diagnóstico T-MT.1a foi necessário para revelar isso.
+- resultado: sucesso
+- data: 2026-05-15
+- riscos vistos: constraint produtos_nome_categoria_unique pode não incluir tenant_id
+- riscos ativos: |
+    - constraint produtos (nome, categoria) sem tenant_id: dois tenants não podem ter produtos
+      com mesmo nome/categoria — verificar via query antes do próximo ciclo em produtos
+- estado_atual: estável
+- ciclo_ref: ciclo-T-MT.1b-frontend-20260515
+
+---
+
 ## PROTOCOLO DE PRIMEIRO SNAPSHOT
 
 Ao operar em domínio com `snapshots: []` no registry:
