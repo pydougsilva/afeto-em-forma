@@ -829,6 +829,8 @@ function AfetoEmFormaApp() {
   const [succ,       setSucc]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTenant, setActiveTenant] = useState(null);
+  const isAdminForCurrentTenant = isPlatformAdmin ||
+    (isAdmin && !!activeTenant && profile?.tenant_id === activeTenant?.id);
   const [tenantLoading, setTenantLoading] = useState(true);
   const [tenantErr, setTenantErr] = useState("");
 
@@ -978,9 +980,9 @@ function AfetoEmFormaApp() {
   }, [isPlatformAdmin]);
 
   useEffect(() => { fetchFornadas(); }, [fetchFornadas]);
-  useEffect(() => { fetchProdutos({ apenasAtivos: !isAdmin }); }, [fetchProdutos, isAdmin]);
-  useEffect(() => { if (isAdmin && adminTab === "pedidos")  fetchPedidos();                        }, [isAdmin, adminTab, fetchPedidos]);
-  useEffect(() => { if (isAdmin && adminTab === "catalogo") fetchProdutos({ apenasAtivos: false }); }, [isAdmin, adminTab, fetchProdutos]);
+  useEffect(() => { fetchProdutos({ apenasAtivos: !isAdminForCurrentTenant }); }, [fetchProdutos, isAdminForCurrentTenant]);
+  useEffect(() => { if (isAdminForCurrentTenant && adminTab === "pedidos")  fetchPedidos();                        }, [isAdminForCurrentTenant, adminTab, fetchPedidos]);
+  useEffect(() => { if (isAdminForCurrentTenant && adminTab === "catalogo") fetchProdutos({ apenasAtivos: false }); }, [isAdminForCurrentTenant, adminTab, fetchProdutos]);
   useEffect(() => { if (isPlatformAdmin && adminTab === "plataforma") fetchPlatformTenants();       }, [isPlatformAdmin, adminTab, fetchPlatformTenants]);
 
   /* ═══════════════════════════════════════════════════════════════
@@ -1003,7 +1005,7 @@ function AfetoEmFormaApp() {
   }
 
   const fetchRelatorios = useCallback(async (p) => {
-    if (!isAdmin) return;
+    if (!isAdminForCurrentTenant) return;
     setRelLoading(true);
     const { start, end } = periodoParaDate(p);
     const endInclusive = end + "T23:59:59";
@@ -1092,12 +1094,12 @@ function AfetoEmFormaApp() {
       console.error("[AeF] fetchRelatorios:", e);
     }
     setRelLoading(false);
-  }, [isAdmin]);
+  }, [isAdminForCurrentTenant]);
 
   // Dispara fetch quando aba relatórios abre ou período muda
   useEffect(() => {
-    if (isAdmin && adminTab === "relatorios") fetchRelatorios(period);
-  }, [isAdmin, adminTab, period, fetchRelatorios]);
+    if (isAdminForCurrentTenant && adminTab === "relatorios") fetchRelatorios(period);
+  }, [isAdminForCurrentTenant, adminTab, period, fetchRelatorios]);
 
   /* ══════════════════════════════════════════════════════════
      DERIVADOS
@@ -1354,7 +1356,7 @@ function AfetoEmFormaApp() {
                 }}>
                 👤 {profile?.nome?.split(" ")[0] || session.user.email.split("@")[0]} ✏️
               </button>
-              {isAdmin && <button className="hdr-rbtn" onClick={() => setAdminOpen(true)}>⚙ {isPlatformAdmin ? "Plataforma" : "Artesã"}</button>}
+              {isAdminForCurrentTenant && <button className="hdr-rbtn" onClick={() => setAdminOpen(true)}>⚙ {isPlatformAdmin ? "Plataforma" : "Artesã"}</button>}
               <button className="hdr-rbtn danger" onClick={signOut}>Sair</button>
             </>) : (<>
               <button className="hdr-rbtn" onClick={() => setShowCadastro(true)}>🏪 Cadastre seu negócio</button>
@@ -1701,7 +1703,7 @@ function AfetoEmFormaApp() {
       )}
 
       {/* ══════════════════ PAINEL ADMIN ══════════════════ */}
-      {adminOpen && isAdmin && (
+      {adminOpen && isAdminForCurrentTenant && (
         <div className="adm-ov">
           <div className="adm-hdr">
             <button className="adm-back" onClick={() => setAdminOpen(false)}>← Voltar</button>
