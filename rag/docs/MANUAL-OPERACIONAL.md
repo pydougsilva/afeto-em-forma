@@ -116,7 +116,48 @@ Resumo:
 ### "Não sei em que fase o projeto está"
 
 → Ler k-proj-identidade.md
-→ Se estiver stale: verificar cabeçalho do App.jsx ou arquivo principal do projeto
+→ Se estiver stale: verificar telemetria mais recente e snapshots de domínio
+
+ATENÇÃO: NÃO usar App.jsx ou UI como fonte de verdade sobre estado do produto.
+A UI representa contexto VISUAL, não contexto operacional.
+Ver seção "OS QUATRO CONTEXTOS" abaixo.
+
+---
+
+## OS QUATRO CONTEXTOS — PRINCÍPIO DE ISOLAMENTO COGNITIVO
+
+Descoberta empírica (T-MT.1b/2b, 2026-05-15):
+Admin do tenant piloto acessou /teste-padaria com painel admin aberto.
+Slug, branding e tenant visual estavam corretos. Autorização estava incorreta.
+A RLS protegeu os dados — mas o guard de frontend falhou.
+
+Esta distinção é fundamental para qualquer agente operando neste sistema:
+
+CONTEXTO VISUAL — O que o usuário vê no navegador.
+  slug na URL, nome do tenant, cores e branding.
+  → NÃO garante autorização. NÃO garante isolamento de dados.
+
+CONTEXTO FRONTEND — O que o React resolve como activeTenant.
+  getRouteTenantSlug() → slug → resolveTenant() → activeTenant.id
+  → Garante: qual tenant está sendo exibido.
+  → NÃO garante: qual tenant o usuário pertence.
+
+CONTEXTO AUTH — O que o JWT contém.
+  get_tenant_id() lê app_metadata.tenant_id, profile.tenant_id lê da tabela profiles.
+  → Garante: qual tenant o usuário PERTENCE.
+  → NÃO pode ser inferido do slug ou do branding.
+
+CONTEXTO INSTITUCIONAL — O que a RLS enforça no banco.
+  get_tenant_id() nas policies → isolamento real.
+  WITH CHECK nas writes → rejeição no nível correto.
+  → É a única camada que garante segurança real.
+
+REGRA: Nenhum agente deve inferir isolamento operacional apenas por contexto visual.
+O contexto visual pode estar correto enquanto o contexto auth é completamente diferente.
+Sempre verificar: JWT tenant_id, profile.tenant_id e activeTenant.id — os três devem coincidir
+para que admin access seja legítimo.
+
+---
 
 ### "Não sei qual módulo carregar"
 
