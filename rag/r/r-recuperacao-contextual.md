@@ -516,6 +516,58 @@ Após cada ciclo homologado e executado:
 
 ---
 
+### frontend/App.jsx — snapshot-002
+- id: 002
+- tipo: incremental
+- base: 001
+- tarefa: security-fix + architectural-audit
+- domínio: frontend/App.jsx
+- módulos: k/frontend/k-fe-app-estrutura, r/r-rls-padrao
+- decisão: |
+    FIX APLICADO (ciclo-MT-fix-audit-20260515):
+    isAdminForCurrentTenant substituiu isAdmin nos guards do painel admin.
+    Admin só abre painel no tenant ao qual seu profile pertence.
+    isPlatformAdmin mantém acesso em qualquer tenant by design.
+    9 substituições. Dependency arrays corretos.
+
+    AUDITORIA ARQUITETURAL — RESULTADO:
+    Hipótese "regras estruturais devem residir majoritariamente no banco": PARCIALMENTE VALIDADA.
+    Estimativa: ~75% do core está no banco via RLS/WITH CHECK/constraints.
+
+    OPERAÇÕES CLASSIFICADAS:
+    - submitPedido: CRÍTICO (usa profile.tenant_id, não activeTenant.id — divergência rota vs JWT possível).
+      RLS protege a escrita, mas pedido vai para tenant do JWT, não da rota. Risco de dados inconsistentes
+      se cliente visita tenant errado. Não é bypass de segurança — é incoerência de UX.
+    - handleSaveFornada: SEGURO (sem tenant_id no INSERT — RLS WITH CHECK + NOT NULL rejeitam).
+    - handleSaveProduto: SEGURO (usa profile.tenant_id, validado por RLS).
+    - confirmarPedido: SEGURO (update por id, RLS limita ao tenant do JWT).
+
+    RISCOS RESIDUAIS IDENTIFICADOS:
+    1. vagas_fornada view: security_invoker não verificado — proteção por filtro frontend,
+       não por RLS pura. Se view for security_definer, expõe dados além do JWT tenant.
+    2. submitPedido usa profile.tenant_id — se usuário logado em tenant A visita /tenant-B,
+       pedido vai para A mesmo vendo catálogo de B. Incoerência de dados, não security breach.
+    3. handleSaveFornada create sem tenant_id — silenciosamente falha (correto), mas sem feedback claro.
+
+    LÓGICA EXCLUSIVA NO FRONTEND (sem correspondente no banco):
+    - Validação de vagas antes do checkout (quantidade vs disponível)
+    - Seleção obrigatória de fornada para pão/biscoito
+    - Validações de formulário (nome/preço obrigatório em produto)
+    - Agregações de relatórios e CSV client-side
+    Estas são UX guards aceitáveis — não substituem constraints de banco.
+
+- resultado: sucesso
+- data: 2026-05-15
+- riscos vistos: vagas_fornada security_invoker não verificado; submitPedido usa JWT tenant, não activeTenant
+- riscos ativos: |
+    - submitPedido: tenant_id vem de profile (JWT), não de activeTenant — risco de incoerência rota/dados (baixa)
+    - vagas_fornada view: verificar security_invoker antes de expor em multi-tenant real
+    - constraint produtos_nome_categoria_unique: verificar inclusão de tenant_id (pendente)
+- estado_atual: estável
+- ciclo_ref: ciclo-MT-fix-audit-20260515
+
+---
+
 ### frontend/App.jsx — snapshot-001
 - id: 001
 - tipo: base

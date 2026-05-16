@@ -312,8 +312,9 @@ módulos_padrão:
   - k/frontend/k-fe-app-estrutura
 snapshots:
   - frontend-App.jsx-001
+  - frontend-App.jsx-002
 estado_atual: estável
-última_operação: multi-tenant-white-label / 2026-05-15
+última_operação: security-fix-audit / 2026-05-15
 embedding_path:
 ```
 
