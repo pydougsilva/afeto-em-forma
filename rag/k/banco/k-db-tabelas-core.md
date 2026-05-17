@@ -84,18 +84,40 @@ Regras:
 Finalidade:
 registrar pedidos/agendamentos realizados.
 
-Colunas principais:
-- id
-- tenant_id
-- user_id
-- fornada_id
-- status
-- valor_total
+Colunas (verificadas via MCP 2026-05-16, Sprint A 2026-05-17):
+- id (uuid, PK)
+- tenant_id (uuid, NOT NULL, FK tenants ON DELETE CASCADE)
+- user_id (uuid, NULLABLE, FK profiles ON DELETE SET NULL)
+- fornada_id (uuid, NULLABLE, FK fornadas ON DELETE SET NULL)
+- data_agendada (date, nullable)
+- status (text, NOT NULL, DEFAULT 'pendente')
+  CHECK: ('pendente','confirmado','entregue','cancelado')
+- valor_total (numeric, nullable, CHECK >= 0)
+- created_at (timestamptz, NOT NULL, DEFAULT now())
+- pago (boolean, NOT NULL, DEFAULT false) ← Sprint A
+- confirmado_em (timestamptz, nullable) ← Sprint A
+- entregue_em (timestamptz, nullable) ← Sprint A
+- nome_cliente (text, nullable) ← Sprint A (guest orders)
+- telefone_cliente (text, nullable) ← Sprint A (guest orders)
 
 Regras:
-- vinculado ao cliente autenticado
-- usado em relatórios
-- exige isolamento por tenant
+- user_id nullable: admin pode criar pedido sem conta de cliente (guest order)
+- pago=false: pagamento ainda não recebido; pago=true: recebido
+- confirmado_em preenchido por Sprint B (confirmarPedido)
+- nome_cliente/telefone_cliente usados quando user_id = null
+- join de cliente: profiles!user_id(nome,telefone) se user_id não null,
+  fallback nome_cliente/telefone_cliente para guest orders
+
+Status válidos:
+- pendente → cliente submeteu, aguarda Jéssica
+- confirmado → Jéssica vai produzir
+- entregue → produto retirado/entregue
+- cancelado → cancelado
+
+SEPARAÇÃO OPERACIONAL/FINANCEIRO:
+- status = contexto operacional (produção/entrega)
+- pago = contexto financeiro (recebimento)
+- Relatórios devem usar pago=true para receita recebida (Sprint C)
 
 ---
 
