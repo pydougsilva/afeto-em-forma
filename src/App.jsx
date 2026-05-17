@@ -1236,8 +1236,9 @@ function AfetoEmFormaApp() {
   }
 
   async function addFornada() {
-    if (!newFornada.data) return;
+    if (!newFornada.data || !activeTenant?.id) return;
     const { error } = await supabase.from("fornadas").insert({
+      tenant_id: activeTenant.id,
       data: newFornada.data, capacidade_pao: newFornada.cap_pao,
       capacidade_biscoito: newFornada.cap_biscoito,
       observacao: newFornada.obs || "Forno a lenha tradicional", ativa: true,
@@ -1347,15 +1348,17 @@ function AfetoEmFormaApp() {
           </div>
           <div className="hdr-right">
             {isLoggedIn ? (<>
-             {/* HOTFIX: nome clicável abre modal de edição de perfil */}
-              <button className="hdr-user" style={{ cursor:"pointer", border:"1px solid rgba(227,183,120,.4)", background:"rgba(255,255,255,.12)" }}
-                onClick={() => {
-                  setPerfilForm({ nome: profile?.nome||"", telefone: profile?.telefone||"", endereco: profile?.endereco||"" });
-                  setPerfilErr(""); setPerfilOk(false);
-                  setShowEditPerfil(true);
-                }}>
-                👤 {profile?.nome?.split(" ")[0] || session.user.email.split("@")[0]} ✏️
-              </button>
+             {/* nome clicável: só aparece no tenant do usuário ou para platform_admin */}
+              {(isPlatformAdmin || profile?.tenant_id === activeTenant?.id) && (
+                <button className="hdr-user" style={{ cursor:"pointer", border:"1px solid rgba(227,183,120,.4)", background:"rgba(255,255,255,.12)" }}
+                  onClick={() => {
+                    setPerfilForm({ nome: profile?.nome||"", telefone: profile?.telefone||"", endereco: profile?.endereco||"" });
+                    setPerfilErr(""); setPerfilOk(false);
+                    setShowEditPerfil(true);
+                  }}>
+                  👤 {profile?.nome?.split(" ")[0] || session.user.email.split("@")[0]} ✏️
+                </button>
+              )}
               {isAdminForCurrentTenant && <button className="hdr-rbtn" onClick={() => setAdminOpen(true)}>⚙ {isPlatformAdmin ? "Plataforma" : "Artesã"}</button>}
               <button className="hdr-rbtn danger" onClick={signOut}>Sair</button>
             </>) : (<>
