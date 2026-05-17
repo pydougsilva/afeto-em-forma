@@ -516,6 +516,48 @@ Após cada ciclo homologado e executado:
 
 ---
 
+### frontend/App.jsx — snapshot-003
+- id: 003
+- tipo: incremental
+- base: 002
+- tarefa: security-fix + staleness-correction
+- domínio: frontend/App.jsx
+- módulos: k/frontend/k-fe-app-estrutura
+- decisão: |
+    CICLO App.jsx-002 (2026-05-16):
+
+    FIX 1 — addFornada 403 resolvido:
+    INSERT sem tenant_id causava 403 (NOT NULL + RLS WITH CHECK).
+    Corrigido: tenant_id: activeTenant.id adicionado ao payload.
+    Guard !activeTenant?.id previne INSERT antes do tenant resolver.
+
+    FIX 2 — editar perfil oculto em tenant alheio:
+    hdr-user button envolto em (isPlatformAdmin || profile?.tenant_id === activeTenant?.id).
+    Usuário logado em tenant alheio vê apenas vitrine pública — sem affordance operacional.
+    Botão "Sair" permanece sempre visível.
+
+    DESCOBERTA — botão confirmar pedido já existia:
+    L1927-1943: button {pedido.status === "pendente" && confirmarPedido(pedido.id)}.
+    TODO em k-proj-identidade estava stale. Mais um caso de "produto mais avançado
+    que os snapshots indicavam". k-proj-identidade atualizado.
+
+    PRINCÍPIO IMPLEMENTADO:
+    "Contexto operacional autenticado é estritamente tenant-bound."
+    Qualquer usuário autenticado em tenant alheio → experiência pública idêntica a visitante anônimo.
+    Exceção: isPlatformAdmin mantém acesso institucional em qualquer tenant.
+
+- resultado: sucesso
+- data: 2026-05-16
+- riscos vistos: submitPedido usa profile.tenant_id, não activeTenant (coerência), vagas_fornada security_invoker não verificado
+- riscos ativos: |
+    - constraint produtos_nome_categoria_unique: verificar inclusão de tenant_id (pendente)
+    - vagas_fornada view: verificar security_invoker antes de multi-tenant público real
+    - submitPedido: pedido vai para JWT tenant, não rota tenant (coerência, não security)
+- estado_atual: estável
+- ciclo_ref: ciclo-App.jsx-002-20260516
+
+---
+
 ### frontend/App.jsx — snapshot-002
 - id: 002
 - tipo: incremental

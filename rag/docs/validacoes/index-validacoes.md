@@ -13,6 +13,7 @@ versao: 1.0
 | T-MT.1b-white-label-ativo | produto | homologado | 2026-05-15 | vercel.json desbloqueia white-label; slug routing já estava completo no App.jsx; 4/30 |
 | T-MT.2-auth-token-fix | produto | homologado | 2026-05-15 | 500 em signIn: confirmation_token=NULL no Go scanner; fix: SET ''  WHERE confirmed; 5/30 |
 | MT-fix-admin-guard | produto | homologado | 2026-05-15 | isAdminForCurrentTenant fecha cross-tenant; auditoria: 75% core no banco; 6/30 |
+| App.jsx-002-fornada-perfil | produto | homologado | 2026-05-16 | addFornada 403 resolvido (tenant_id); perfil oculto em tenant alheio; confirmar já existia; 7/30 |
 
 ---
 
