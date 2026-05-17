@@ -124,19 +124,27 @@ correções pendentes + onboarding multi-tenant.
 
 ## PRÓXIMAS ENTREGAS — PRODUTO
 
-BLOQUEADORES PARA MULTI-TENANT REAL (confirmados empiricamente em T-MT.1a):
-- slug routing /{slug} no App.jsx — frontend não sabe qual tenant renderizar (severidade: alta)
-- signUp de clientes deve passar tenant_id no metadata — sem isso, novos clientes sem isolamento
-- constraint produtos_nome_categoria_unique deve incluir tenant_id — verificar (severidade: média)
+ITENS CONCLUÍDOS (verificados empiricamente):
+- fn_handle_new_user com tenant_id — v2 deployada ✓
+- fn_provision_tenant — deployada e funcional ✓
+- slug routing /{slug} — implementado + vercel.json ✓
+- guard admin cross-tenant (isAdminForCurrentTenant) ✓
+- addFornada com tenant_id — resolvido ✓
+- botão confirmar pedido — JÁ EXISTIA (HOTFIX anterior) ✓
+- editar perfil oculto em tenant alheio ✓
 
 PENDENTES (Fase 3):
-- fn_handle_new_user com tenant_id — RESOLVIDO (v2 já deployada, confirmado T6.1a)
-- fn_provision_tenant — RESOLVIDO (deployada e funcional, confirmado T-MT.1a)
-- botão confirmar pedido (domínio: pedidos)
-- onboarding completo de novos tenants (bloqueado pelos 3 itens acima)
+- signUp de clientes deve passar tenant_id — depende de SMTP configurado
+- onboarding completo de novos tenants — depende de SMTP + slug routing
+- confirmação do fluxo completo com clientes reais
 
-NOTA: infraestrutura banco/auth/JWT/RLS está correta para multi-tenant (validado T-MT.1a).
-O blocker de produto é o frontend.
+VERIFICAR ANTES DE MULTI-TENANT COM CLIENTES REAIS:
+- constraint produtos_nome_categoria_unique: verificar se inclui tenant_id
+- vagas_fornada view: verificar security_invoker
+- submitPedido: tenant_id vem de profile, não de activeTenant (coerência)
+
+NOTA: infraestrutura banco/auth/JWT/RLS correta para multi-tenant.
+Frontend: contexto operacional autenticado é tenant-bound (princípio implementado).
 
 ---
 

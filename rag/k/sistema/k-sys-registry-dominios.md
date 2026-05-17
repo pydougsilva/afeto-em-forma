@@ -313,8 +313,9 @@ módulos_padrão:
 snapshots:
   - frontend-App.jsx-001
   - frontend-App.jsx-002
+  - frontend-App.jsx-003
 estado_atual: estável
-última_operação: security-fix-audit / 2026-05-15
+última_operação: security-fix-staleness / 2026-05-16
 embedding_path:
 ```
 
