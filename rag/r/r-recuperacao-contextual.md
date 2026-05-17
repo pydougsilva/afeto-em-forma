@@ -531,6 +531,52 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 
 ---
 
+### public.pedidos — snapshot-004
+- id: 004
+- tipo: incremental
+- base: 003
+- tarefa: sprint-b-ciclo-operacional
+- domínio: public.pedidos
+- módulos: k/frontend/k-fe-app-estrutura
+- modo_operacao: degradado
+- motivo: indisponibilidade temporária do executor Codex
+- executor_temporario: Claude
+- decisão: |
+    SPRINT B CONCLUÍDA (ciclo-pedidos-sprint-b-20260517):
+    Executada em modo degradado — Claude acumulou papéis de orquestrador e executor.
+
+    FUNÇÕES ADICIONADAS:
+    confirmarPedido: agora registra confirmado_em = NOW()
+    entregarPedido: status=entregue + entregue_em = NOW()
+    cancelarPedido: status=cancelado com confirmação window.confirm()
+    togglePago: inverte pago — separação operacional/financeiro
+
+    UI — BOTÕES POR STATUS:
+    pendente   → [✓ Confirmar] [✕ Cancelar]
+    confirmado → [🚚 Entregar] [💰 Marcar Pago] [✕ Cancelar]
+    entregue   → [💰 toggle Pago]
+    cancelado  → nenhuma ação
+
+    SEPARAÇÃO EFETIVA:
+    status = ciclo operacional (produção → entrega → cancelamento)
+    pago = ciclo financeiro (independente do status)
+    Badge de pago é independente e visível em qualquer estado não-cancelado
+
+    RISCO ANOTADO:
+    confirmado_em usa UTC do browser — adequado para operação local da Jéssica.
+
+- resultado: sucesso
+- data: 2026-05-17
+- riscos vistos: confirmado_em em UTC do browser; window.confirm() sem estilo customizado
+- riscos ativos: |
+    - relatórios ainda usam status='confirmado' como proxy financeiro (Sprint C)
+    - guest orders: schema pronto, UI ausente (Sprint D)
+    - window.confirm() será substituído por modal customizado em sprint futura
+- estado_atual: estável
+- ciclo_ref: ciclo-pedidos-sprint-b-20260517
+
+---
+
 ### public.itens_pedido — snapshot-001
 - id: 001
 - tipo: base
