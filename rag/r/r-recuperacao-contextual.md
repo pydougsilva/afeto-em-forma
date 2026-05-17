@@ -425,13 +425,55 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 - decisão: |
     Registro de pedidos/agendamentos. Campos: id, tenant_id, user_id, fornada_id, status, valor_total.
     Vincula cliente autenticado à fornada. Usado em relatórios.
-    Botão confirmar pedido está pendente na Fase 3 — status pode não ser atualizado corretamente.
     Dependência crítica: profiles via user_id (join obrigatório profiles!user_id).
 - resultado: auditoria
 - data: 2026-05-12
-- riscos vistos: fluxo de confirmação incompleto, dependência de profiles sem tenant_id (fn_handle_new_user pendente)
-- riscos ativos: confirmação de pedido (botão + status update) não implementada — Fase 3 pendente
+- riscos vistos: fluxo de confirmação incompleto, dependência de profiles sem tenant_id
+- riscos ativos: confirmação de pedido não implementada — Fase 3 pendente
 - estado_atual: estável
+
+---
+
+### public.pedidos — snapshot-002
+- id: 002
+- tipo: incremental
+- base: 001
+- tarefa: auditoria-verificacao + modelagem-arquitetural
+- domínio: public.pedidos
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    AUDITORIA TÉCNICA (ciclo-audit-pedidos-20260516):
+    15 pedidos reais em produção (12 confirmados, 3 pendentes).
+    Primeiro ciclo end-to-end validado: pedido → confirmação → relatório.
+
+    SCHEMA REAL (verificado via MCP):
+    user_id: nullable (ON DELETE SET NULL) — guest orders suportadas pelo schema
+    status CHECK: já inclui 'entregue' E 'cancelado' — estados apenas ausentes da UI
+    RLS admin compatível com user_id = null.
+
+    COLUNAS AUSENTES (migration necessária, todas seguras):
+    pago BOOLEAN NOT NULL DEFAULT false
+    confirmado_em TIMESTAMPTZ
+    entregue_em TIMESTAMPTZ
+    nome_cliente TEXT
+    telefone_cliente TEXT
+
+    ERRO SEMÂNTICO NOS RELATÓRIOS:
+    fetchRelatorios filtra exclusivamente por status = 'confirmado'.
+    Correto: separar receita_recebida (pago=true) de producao_prevista (status=confirmado).
+
+    RETROCOMPATIBILIDADE: todas as mudanças são aditivas. 15 pedidos existentes:
+    pago = false é semanticamente correto (nenhum estava marcado como pago).
+
+- resultado: auditoria
+- data: 2026-05-16
+- riscos vistos: relatórios conflacionam operacional e financeiro; guest orders dependem de UI não construída
+- riscos ativos: |
+    - pago ausente: confirmação tratada como pagamento recebido (imprecisão contábil)
+    - entregue/cancelado no CHECK mas sem fluxo operacional real na UI
+    - guest orders: schema pronto, UI não existe
+- estado_atual: estável (dados corretos, schema funcional, UX incompleta)
+- ciclo_ref: ciclo-audit-pedidos-20260516
 
 ---
 
