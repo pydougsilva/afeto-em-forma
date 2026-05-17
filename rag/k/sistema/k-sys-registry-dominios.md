@@ -210,8 +210,9 @@ módulos_padrão:
 snapshots:
   - pedidos-001
   - pedidos-002
+  - pedidos-003
 estado_atual: estável
-última_operação: auditoria-verificacao / 2026-05-16
+última_operação: sprint-a-schema-ux / 2026-05-17
 embedding_path:
 ```
 

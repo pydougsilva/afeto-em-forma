@@ -477,6 +477,60 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 
 ---
 
+### public.pedidos — snapshot-003
+- id: 003
+- tipo: incremental
+- base: 002
+- tarefa: sprint-a-schema-ux
+- domínio: public.pedidos
+- módulos: r/r-handoff-codex, r/r-recuperacao-contextual
+- decisão: |
+    SPRINT A CONCLUÍDA (ciclo-pedidos-sprint-a-20260517):
+    Migration aplicada via MCP. 5 colunas adicionadas. Build passou.
+
+    SCHEMA ATUAL (pós Sprint A):
+    pago BOOLEAN NOT NULL DEFAULT false — em produção
+    confirmado_em TIMESTAMPTZ — em produção (preenchimento: Sprint B)
+    entregue_em TIMESTAMPTZ — em produção (preenchimento: Sprint B)
+    nome_cliente TEXT — em produção (UI: Sprint D)
+    telefone_cliente TEXT — em produção (UI: Sprint D)
+    Índices: idx_pedidos_tenant_pago, idx_pedidos_status_pago
+
+    UX MELHORADA (App.jsx):
+    - fetchPedidos: SELECT expandido com pago,confirmado_em,nome_cliente,telefone_cliente
+    - Tab pedidos admin: timestamp 🕐 de criação por pedido
+    - Checkout modal: Total: R$ totalFmt visível antes do submit
+    - WhatsApp: mensagem reestruturada em Pedido/Cliente com valor total
+    - Codex computou modalTotalPedido e totalPedido separadamente — correto
+
+    REGRAS QUE FICARAM NO BANCO:
+    - pago DEFAULT false (estrutural — banco enforça o default)
+    - CHECK de status válidos (imutável)
+    - RLS WITH CHECK (admin cria, cliente lê o próprio)
+    - Índices para queries financeiras
+
+    REGRAS QUE FICARAM NO FRONTEND:
+    - totalFmt (cálculo de display — UX)
+    - Formatação da mensagem WhatsApp (comunicação)
+    - Display de created_at (formatação de UI)
+
+    RISCOS RESIDUAIS PARA PRÓXIMAS SPRINTS:
+    - relatórios ainda usam status='confirmado' como proxy financeiro (Sprint C)
+    - confirmarPedido não preenche confirmado_em ainda (Sprint B)
+    - guest orders sem UI de criação (Sprint D)
+
+- resultado: sucesso
+- data: 2026-05-17
+- riscos vistos: relatórios ainda usando status como proxy financeiro (Sprint C pendente)
+- riscos ativos: |
+    - confirmarPedido não preenche confirmado_em (Sprint B)
+    - relatórios não usam campo pago ainda (Sprint C)
+    - guest orders: schema + RLS prontos, UI ausente (Sprint D)
+- estado_atual: estável
+- ciclo_ref: ciclo-pedidos-sprint-a-20260517
+
+---
+
 ### public.itens_pedido — snapshot-001
 - id: 001
 - tipo: base
