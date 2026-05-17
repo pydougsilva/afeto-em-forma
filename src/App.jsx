@@ -940,7 +940,7 @@ function AfetoEmFormaApp() {
     //   profiles.id = pedidos.user_id, independente da FK apontar para auth.users.
     //   Sem o hint, o join retorna null e o nome do cliente não aparece.
     const { data, error } = await supabase.from("pedidos")
-      .select("id,status,data_agendada,valor_total,created_at,user_id,profiles!user_id(nome,telefone),fornadas(data),itens_pedido(produto,nome_produto,quantidade,preco_unitario)")
+      .select("id,status,data_agendada,valor_total,created_at,pago,confirmado_em,nome_cliente,telefone_cliente,user_id,profiles!user_id(nome,telefone),fornadas(data),itens_pedido(produto,nome_produto,quantidade,preco_unitario)")
       .order("created_at", { ascending: false }).limit(50);
     if (!error && data) setPedidosReais(data);
     else if (error) console.error("[AeF] fetchPedidos:", error.message);
@@ -1125,6 +1125,12 @@ function AfetoEmFormaApp() {
     pao_ocupado: f.pao_ocupado,   pao_livre: vagasPao(f),
     bisc_ocupado:f.biscoito_ocupado, bisc_livre: vagasBiscoito(f),
   }));
+  const modalTotalPedido = modal?.prod
+    ? getQty(modal.prod.id) * extrairPreco(modal.prod.preco)
+    : 0;
+  const totalFmt = modalTotalPedido > 0
+    ? modalTotalPedido.toFixed(2).replace(".", ",")
+    : "a confirmar";
 
   /* ══════════════════════════════════════════════════════════
      LÓGICA DE UI
@@ -1179,6 +1185,10 @@ function AfetoEmFormaApp() {
     try {
       const userId       = session.user.id;
       const precoUnit    = extrairPreco(prod.preco);
+      const totalPedido = qty * precoUnit;
+      const totalFmt = totalPedido > 0
+        ? totalPedido.toFixed(2).replace(".", ",")
+        : "a confirmar";
       const { data: pedido, error: pedidoErr } = await supabase.from("pedidos").insert({
         user_id:       userId,
           tenant_id:     tenantId,                             // ← NOVO
@@ -1206,10 +1216,10 @@ function AfetoEmFormaApp() {
       const telefone = profile?.telefone || "";
       const endereco = profile?.endereco || "";
       const msg = prod.tipo === "bolo"
-        ? `Olá, Afeto em Forma! 🎂 Encomendar *${qty}x ${prod.n}* para *${dtLabel}*.\n\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`
+        ? `Olá, Afeto em Forma! 🎂\n\nPedido:\n*${qty}x ${prod.n}*\nData: *${dtLabel}*\nValor total: *R$ ${totalFmt}*\n\nCliente:\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`
         : prod.tipo === "pao"
-        ? `Olá, Afeto em Forma! 🍞 Garantir vaga para *${qty}x ${prod.n}* — fornada de *${dtLabel}*.\n\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`
-        : `Olá, Afeto em Forma! 🍪 Reservar *${qty} pacote(s) de ${prod.n}* — fornada de *${dtLabel}*.\n\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`;
+        ? `Olá, Afeto em Forma! 🍞\n\nPedido:\n*${qty}x ${prod.n}*\nFornada: *${dtLabel}*\nValor total: *R$ ${totalFmt}*\n\nCliente:\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`
+        : `Olá, Afeto em Forma! 🍪\n\nPedido:\n*${qty}x ${prod.n}*\nFornada: *${dtLabel}*\nValor total: *R$ ${totalFmt}*\n\nCliente:\nNome: *${nome}*\nWhatsApp: *${telefone}*\nEndereço: *${endereco}*`;
 
       window.open(`https://api.whatsapp.com/send?phone=${WA_NUM}&text=${encodeURIComponent(msg)}`, "_blank");
       await fetchFornadas();
@@ -1575,6 +1585,9 @@ function AfetoEmFormaApp() {
                 </div>
               )}
               {err && <div className="merr">⚠️ {err}</div>}
+              <div style={{ textAlign:"center", fontWeight:600, color:"var(--pr)", fontSize:"1.05rem", margin:"12px 0 4px" }}>
+                Total: R$ {totalFmt}
+              </div>
               <button className="msub" onClick={handleCheckout} disabled={submitting}>
                 {submitting ? <><span className="spin">⏳</span> Registrando...</> : "📲 Confirmar e Abrir WhatsApp"}
               </button>
@@ -1921,6 +1934,11 @@ function AfetoEmFormaApp() {
                         <div className="porder-meta">
                           🛒 {itemDesc || "sem itens"} · 📅 {dtExib}{pedido.valor_total ? ` · R$ ${Number(pedido.valor_total).toFixed(2)}` : ""}
                         </div>
+                        {pedido.created_at && (
+                          <div style={{ fontSize:".62rem", color:"var(--mum)", marginTop:2 }}>
+                            🕐 {new Date(pedido.created_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
+                          </div>
+                        )}
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
                         <span className={`badge ${pedido.status==="confirmado"?"bc":"bp"}`}>
