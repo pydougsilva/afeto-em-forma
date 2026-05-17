@@ -209,8 +209,9 @@ módulos_padrão:
   - k/banco/k-db-tabelas-core
 snapshots:
   - pedidos-001
+  - pedidos-002
 estado_atual: estável
-última_operação: auditoria-inicial / 2026-05-12
+última_operação: auditoria-verificacao / 2026-05-16
 embedding_path:
 ```
 
