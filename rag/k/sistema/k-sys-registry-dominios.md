@@ -211,8 +211,9 @@ snapshots:
   - pedidos-001
   - pedidos-002
   - pedidos-003
+  - pedidos-004
 estado_atual: estável
-última_operação: sprint-a-schema-ux / 2026-05-17
+última_operação: sprint-b-ciclo-operacional / 2026-05-17
 embedding_path:
 ```
 
