@@ -577,6 +577,67 @@ Nunca carregar múltiplos snapshots em paralelo na mesma execução.
 
 ---
 
+### public.pedidos — snapshot-005
+- id: 005
+- tipo: incremental
+- base: 004
+- tarefa: sprint-c-relatorios-separacao-financeiro
+- domínio: public.pedidos
+- módulos: k/frontend/k-fe-app-estrutura
+- modo_operacao: degradado
+- motivo: indisponibilidade temporária do executor Codex
+- executor_temporario: Claude
+- decisão: |
+    SPRINT C CONCLUÍDA (ciclo-pedidos-sprint-c-20260517):
+    Executada em modo degradado — Claude acumulou papéis de orquestrador e executor.
+
+    PROBLEMA RESOLVIDO:
+    fetchRelatorios usava status='confirmado' como proxy financeiro exclusivo.
+    "Confirmado" ≠ "Pago" — separação criada pelo schema da Sprint A, agora refletida nos relatórios.
+
+    QUERIES SEPARADAS (src/App.jsx):
+    1. Em Produção (operacional): status='confirmado' → emProducaoCount, emProducaoValor, ticketMedio
+    2. Receita Recebida (financeiro): pago=true → receitaRecebida
+    3. A Receber (financeiro): status IN ('confirmado','entregue') AND pago=false → aReceber
+    4. Entregues (operacional): status='entregue' → entregues
+    5. Inadimplência (financeiro, sem filtro de período): status='entregue' AND pago=false → setRelInadimplentes
+
+    NOVOS ESTADOS:
+    relInadimplentes: useState([]) — array de pedidos entregues não pagos
+
+    NOVOS KPI CARDS (5 no total):
+    ✅ Receita Recebida — pagamento confirmado
+    ⏳ A Receber — produção/entrega, não pago
+    🏭 Em Produção — pedidos confirmados (contagem)
+    🚚 Entregues — no período (contagem)
+    🎯 Ticket Médio — por pedido em produção
+
+    NOVA SEÇÃO UI:
+    ⚠️ Inadimplência — tabela de pedidos entregues sem pagamento (visível quando não-vazio)
+    Colunas: Cliente, Telefone, Valor, Data do Pedido
+
+    exportarCSV: atualizado com novos campos (Receita Recebida, A Receber, Em Produção, Entregues, Ticket Médio)
+
+    COMPORTAMENTO ESPERADO COM DADOS ATUAIS:
+    Os 12 pedidos confirmados têm pago=false (padrão Sprint A).
+    "Receita Recebida" = R$ 0,00 até Jéssica marcar via togglePago.
+    "A Receber" = soma dos 12 pedidos confirmados.
+    Isso é CORRETO semanticamente — reflete a realidade financeira do negócio.
+
+    Build: passou sem novos erros (10.26s, 717 módulos).
+
+- resultado: sucesso
+- data: 2026-05-17
+- riscos vistos: 12 pedidos com pago=false exibem "Receita Recebida" zerada (correto, não é bug)
+- riscos ativos: |
+    - guest orders: schema pronto, UI ausente (Sprint D)
+    - window.confirm() será substituído por modal customizado em sprint futura
+    - 12 pedidos confirmados precisam ser marcados como pagos via togglePago para refletir receita real
+- estado_atual: estável
+- ciclo_ref: ciclo-pedidos-sprint-c-20260517
+
+---
+
 ### public.itens_pedido — snapshot-001
 - id: 001
 - tipo: base

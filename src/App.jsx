@@ -859,8 +859,9 @@ function AfetoEmFormaApp() {
   const [relKPIs,     setRelKPIs]     = useState(null);
   const [relDaily,    setRelDaily]    = useState([]);
   const [relTopProds, setRelTopProds] = useState([]);
-  const [relFornadas, setRelFornadas] = useState([]);
-  const [relLoading,  setRelLoading]  = useState(false);
+  const [relFornadas,      setRelFornadas]      = useState([]);
+  const [relInadimplentes, setRelInadimplentes] = useState([]);
+  const [relLoading,       setRelLoading]       = useState(false);
   // debounceRef via useState para mutação sem re-render
   const [debounceRef] = useState({ current: null });
 
@@ -1055,8 +1056,8 @@ function AfetoEmFormaApp() {
     const { start, end } = periodoParaDate(p);
     const endInclusive = end + "T23:59:59";
     try {
-      // ── KPIs ──────────────────────────────────────────────────
-      const { data: kpiData } = await supabase
+      // ── KPI operacional: em produção (status=confirmado) ────────
+      const { data: kpiEmProd } = await supabase
         .from("pedidos")
         .select("valor_total")
         .eq("status", "confirmado")
@@ -1064,10 +1065,44 @@ function AfetoEmFormaApp() {
         .lte("created_at", endInclusive)
         .not("valor_total", "is", null);
 
-      const totalPedidos = kpiData?.length ?? 0;
-      const faturamento  = kpiData?.reduce((a, r) => a + Number(r.valor_total || 0), 0) ?? 0;
-      const ticketMedio  = totalPedidos > 0 ? faturamento / totalPedidos : 0;
-      setRelKPIs({ faturamento, ticketMedio, totalPedidos });
+      const emProducaoCount = kpiEmProd?.length ?? 0;
+      const emProducaoValor = kpiEmProd?.reduce((a, r) => a + Number(r.valor_total || 0), 0) ?? 0;
+      const ticketMedio     = emProducaoCount > 0 ? emProducaoValor / emProducaoCount : 0;
+
+      // ── KPI financeiro: receita efetivamente recebida (pago=true) ──
+      const { data: kpiPago } = await supabase
+        .from("pedidos")
+        .select("valor_total")
+        .eq("pago", true)
+        .gte("created_at", start)
+        .lte("created_at", endInclusive)
+        .not("valor_total", "is", null);
+
+      const receitaRecebida = kpiPago?.reduce((a, r) => a + Number(r.valor_total || 0), 0) ?? 0;
+
+      // ── KPI financeiro: a receber (comprometido, não pago) ──────
+      const { data: kpiAReceber } = await supabase
+        .from("pedidos")
+        .select("valor_total")
+        .in("status", ["confirmado", "entregue"])
+        .eq("pago", false)
+        .gte("created_at", start)
+        .lte("created_at", endInclusive)
+        .not("valor_total", "is", null);
+
+      const aReceber = kpiAReceber?.reduce((a, r) => a + Number(r.valor_total || 0), 0) ?? 0;
+
+      // ── KPI operacional: entregues no período ───────────────────
+      const { data: kpiEntregues } = await supabase
+        .from("pedidos")
+        .select("id")
+        .eq("status", "entregue")
+        .gte("created_at", start)
+        .lte("created_at", endInclusive);
+
+      const entregues = kpiEntregues?.length ?? 0;
+
+      setRelKPIs({ emProducaoCount, emProducaoValor, ticketMedio, receitaRecebida, aReceber, entregues });
 
       // ── Evolução diária (agrupamento client-side) ──────────────
       const { data: dailyRaw } = await supabase
@@ -1134,6 +1169,16 @@ function AfetoEmFormaApp() {
         .map(([data, v]) => ({ data, ...v }))
         .sort((a, b) => b.faturamento - a.faturamento);
       setRelFornadas(fornArr);
+
+      // ── Inadimplência: entregues sem pagamento (sem filtro de período — visão total) ──
+      const { data: inadData } = await supabase
+        .from("pedidos")
+        .select("id, valor_total, created_at, profiles!user_id(nome, telefone)")
+        .eq("status", "entregue")
+        .eq("pago", false)
+        .not("valor_total", "is", null);
+
+      setRelInadimplentes(inadData ?? []);
 
     } catch (e) {
       console.error("[AeF] fetchRelatorios:", e);
@@ -1342,9 +1387,11 @@ function AfetoEmFormaApp() {
     const { start, end } = periodoParaDate(period);
     const linhas = [
       ["Tipo", "Data", "Produto / Métrica", "Quantidade", "Valor (R$)"],
-      ["KPI",  start + " a " + end, "Faturamento Total",  "",                               relKPIs?.faturamento?.toFixed(2) ?? ""],
-      ["KPI",  start + " a " + end, "Ticket Médio",       "",                               relKPIs?.ticketMedio?.toFixed(2)  ?? ""],
-      ["KPI",  start + " a " + end, "Total de Pedidos",   relKPIs?.totalPedidos ?? "",      ""],
+      ["KPI",  start + " a " + end, "Receita Recebida",   "",                               relKPIs?.receitaRecebida?.toFixed(2) ?? ""],
+      ["KPI",  start + " a " + end, "A Receber",          "",                               relKPIs?.aReceber?.toFixed(2)        ?? ""],
+      ["KPI",  start + " a " + end, "Em Produção",        relKPIs?.emProducaoCount ?? "",   ""],
+      ["KPI",  start + " a " + end, "Entregues",          relKPIs?.entregues ?? "",         ""],
+      ["KPI",  start + " a " + end, "Ticket Médio",       "",                               relKPIs?.ticketMedio?.toFixed(2)     ?? ""],
       ...relDaily.map(d    => ["Vendas Diárias", d.data,   "",           "",       d.valor.toFixed(2)]),
       ...relTopProds.map((p, i) => ["Top Produto", `#${i+1}`, p.nome,   p.qty,    ""]),
       ...relFornadas.map(f => ["Por Fornada",  f.data,      "",           f.pedidos, f.faturamento.toFixed(2)]),
@@ -2124,25 +2171,39 @@ function AfetoEmFormaApp() {
                     {/* ── KPIs ── */}
                     <div className="rel-kpi-grid">
                       <div className="rel-kpi">
-                        <div className="rel-kpi-lbl">💰 Faturamento Total</div>
+                        <div className="rel-kpi-lbl">✅ Receita Recebida</div>
                         <div className="rel-kpi-val">
-                          {relKPIs ? `R$ ${relKPIs.faturamento.toFixed(2).replace(".", ",")}` : "—"}
+                          {relKPIs ? `R$ ${relKPIs.receitaRecebida.toFixed(2).replace(".", ",")}` : "—"}
+                        </div>
+                        <div className="rel-kpi-sub">pagamento confirmado</div>
+                      </div>
+                      <div className="rel-kpi">
+                        <div className="rel-kpi-lbl">⏳ A Receber</div>
+                        <div className="rel-kpi-val">
+                          {relKPIs ? `R$ ${relKPIs.aReceber.toFixed(2).replace(".", ",")}` : "—"}
+                        </div>
+                        <div className="rel-kpi-sub">produção/entrega, não pago</div>
+                      </div>
+                      <div className="rel-kpi">
+                        <div className="rel-kpi-lbl">🏭 Em Produção</div>
+                        <div className="rel-kpi-val">
+                          {relKPIs ? relKPIs.emProducaoCount : "—"}
                         </div>
                         <div className="rel-kpi-sub">pedidos confirmados</div>
+                      </div>
+                      <div className="rel-kpi">
+                        <div className="rel-kpi-lbl">🚚 Entregues</div>
+                        <div className="rel-kpi-val">
+                          {relKPIs ? relKPIs.entregues : "—"}
+                        </div>
+                        <div className="rel-kpi-sub">no período</div>
                       </div>
                       <div className="rel-kpi">
                         <div className="rel-kpi-lbl">🎯 Ticket Médio</div>
                         <div className="rel-kpi-val">
                           {relKPIs ? `R$ ${relKPIs.ticketMedio.toFixed(2).replace(".", ",")}` : "—"}
                         </div>
-                        <div className="rel-kpi-sub">por pedido confirmado</div>
-                      </div>
-                      <div className="rel-kpi">
-                        <div className="rel-kpi-lbl">📦 Total de Pedidos</div>
-                        <div className="rel-kpi-val">
-                          {relKPIs ? relKPIs.totalPedidos : "—"}
-                        </div>
-                        <div className="rel-kpi-sub">confirmados no período</div>
+                        <div className="rel-kpi-sub">por pedido em produção</div>
                       </div>
                     </div>
 
@@ -2250,6 +2311,42 @@ function AfetoEmFormaApp() {
                         </div>
                       )}
                     </div>
+
+                    {/* ── Inadimplência: entregues não pagos ── */}
+                    {relInadimplentes.length > 0 && (
+                      <div className="rel-section">
+                        <div className="rel-section-title">
+                          ⚠️ Inadimplência
+                          <span>entregues sem pagamento confirmado</span>
+                        </div>
+                        <div style={{ overflowX:"auto" }}>
+                          <table className="rel-table">
+                            <thead>
+                              <tr>
+                                <th>Cliente</th>
+                                <th>Telefone</th>
+                                <th style={{ textAlign:"right" }}>Valor</th>
+                                <th style={{ textAlign:"right" }}>Data do Pedido</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {relInadimplentes.map(p => (
+                                <tr key={p.id}>
+                                  <td>{p.profiles?.nome ?? "—"}</td>
+                                  <td>{p.profiles?.telefone ?? "—"}</td>
+                                  <td style={{ textAlign:"right", fontWeight:600, color:"#c0392b" }}>
+                                    R$ {Number(p.valor_total || 0).toFixed(2).replace(".", ",")}
+                                  </td>
+                                  <td style={{ textAlign:"right", color:"var(--mu)" }}>
+                                    {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
