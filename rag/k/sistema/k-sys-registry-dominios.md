@@ -212,8 +212,9 @@ snapshots:
   - pedidos-002
   - pedidos-003
   - pedidos-004
+  - pedidos-005
 estado_atual: estável
-última_operação: sprint-b-ciclo-operacional / 2026-05-17
+última_operação: sprint-c-relatorios-financeiro / 2026-05-17
 embedding_path:
 ```
 
