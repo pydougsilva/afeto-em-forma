@@ -840,8 +840,11 @@ function AfetoEmFormaApp() {
   const [loadPedidos,  setLoadPedidos]  = useState(false);
   const [platformTenants, setPlatformTenants] = useState([]);
   const [loadPlatform, setLoadPlatform] = useState(false);
-  // HOTFIX: id do pedido sendo confirmado — previne duplo-clique e anima o botão
+  // previne duplo-clique nas ações de pedido
   const [confirmandoId, setConfirmandoId] = useState(null);
+  const [entregandoId,  setEntregandoId]  = useState(null);
+  const [cancelandoId,  setCancelandoId]  = useState(null);
+  const [pagandoId,     setPagandoId]     = useState(null);
   const [newFornada,   setNewFornada]   = useState({ data:"", obs:"", cap_pao:5, cap_biscoito:6 });
 
   /* ─── estado modal de produto (admin) ─── */
@@ -947,23 +950,65 @@ function AfetoEmFormaApp() {
     setLoadPedidos(false);
   }, []);
 
-  // HOTFIX: confirma pedido pendente → atualiza status no banco e recarrega lista
-  // Desbloqueio dos relatórios: faturamento só conta pedidos com status='confirmado'
+  // confirma pedido pendente → produção e registra timestamp de confirmação
   const confirmarPedido = useCallback(async (pedidoId) => {
     setConfirmandoId(pedidoId);
     try {
       const { error } = await supabase
         .from("pedidos")
-        .update({ status: "confirmado" })
+        .update({ status: "confirmado", confirmado_em: new Date().toISOString() })
         .eq("id", pedidoId);
       if (error) throw error;
-      await fetchPedidos(); // recarrega lista com badge atualizado
+      await fetchPedidos();
     } catch (e) {
       console.error("[AeF] confirmarPedido:", e.message);
       alert("Erro ao confirmar pedido. Tente novamente.");
     } finally {
       setConfirmandoId(null);
     }
+  }, [fetchPedidos]);
+
+  const entregarPedido = useCallback(async (pedidoId) => {
+    setEntregandoId(pedidoId);
+    try {
+      const { error } = await supabase.from("pedidos")
+        .update({ status: "entregue", entregue_em: new Date().toISOString() })
+        .eq("id", pedidoId);
+      if (error) throw error;
+      await fetchPedidos();
+    } catch (e) {
+      console.error("[AeF] entregarPedido:", e.message);
+      alert("Erro ao registrar entrega. Tente novamente.");
+    } finally { setEntregandoId(null); }
+  }, [fetchPedidos]);
+
+  const cancelarPedido = useCallback(async (pedidoId) => {
+    if (!window.confirm("Cancelar este pedido? Esta ação não pode ser desfeita.")) return;
+    setCancelandoId(pedidoId);
+    try {
+      const { error } = await supabase.from("pedidos")
+        .update({ status: "cancelado" })
+        .eq("id", pedidoId);
+      if (error) throw error;
+      await fetchPedidos();
+    } catch (e) {
+      console.error("[AeF] cancelarPedido:", e.message);
+      alert("Erro ao cancelar pedido. Tente novamente.");
+    } finally { setCancelandoId(null); }
+  }, [fetchPedidos]);
+
+  const togglePago = useCallback(async (pedidoId, pagoAtual) => {
+    setPagandoId(pedidoId);
+    try {
+      const { error } = await supabase.from("pedidos")
+        .update({ pago: !pagoAtual })
+        .eq("id", pedidoId);
+      if (error) throw error;
+      await fetchPedidos();
+    } catch (e) {
+      console.error("[AeF] togglePago:", e.message);
+      alert("Erro ao atualizar pagamento. Tente novamente.");
+    } finally { setPagandoId(null); }
   }, [fetchPedidos]);
 
   const fetchPlatformTenants = useCallback(async () => {
@@ -1941,26 +1986,41 @@ function AfetoEmFormaApp() {
                         )}
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
-                        <span className={`badge ${pedido.status==="confirmado"?"bc":"bp"}`}>
-                          {pedido.status==="confirmado" ? "✓ Confirmado" : "⏳ Pendente"}
+                        {/* Badge de status operacional */}
+                        <span style={{ fontSize:".65rem", borderRadius:6, padding:"3px 9px", fontWeight:600, color:"#fff",
+                          background: pedido.status==="confirmado" ? "var(--green)" : pedido.status==="entregue" ? "#5A7A3A" : pedido.status==="cancelado" ? "#8A8A8A" : "var(--sc)" }}>
+                          {pedido.status==="confirmado" ? "✓ Em Produção" : pedido.status==="entregue" ? "✓ Entregue" : pedido.status==="cancelado" ? "✕ Cancelado" : "⏳ Pendente"}
                         </span>
-                        {/* HOTFIX: botão só aparece para pedidos pendentes */}
+                        {/* Badge de pagamento */}
+                        {pedido.pago && (
+                          <span style={{ fontSize:".6rem", background:"#7A8B5B", color:"#fff", borderRadius:6, padding:"2px 8px", fontWeight:600 }}>💰 Pago</span>
+                        )}
+                        {/* Confirmar — pendente */}
                         {pedido.status === "pendente" && (
-                          <button
-                            onClick={() => confirmarPedido(pedido.id)}
-                            disabled={confirmandoId === pedido.id}
-                            style={{
-                              background:"linear-gradient(135deg,var(--green),#5A7A3A)",
-                              color:"#fff", border:"none", borderRadius:8,
-                              padding:"4px 10px", fontSize:".68rem", fontWeight:600,
-                              cursor: confirmandoId === pedido.id ? "not-allowed" : "pointer",
-                              opacity: confirmandoId === pedido.id ? .6 : 1,
-                              fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap",
-                              transition:"opacity .2s",
-                            }}>
-                            {confirmandoId === pedido.id
-                              ? <><span className="spin">⏳</span> Confirmando...</>
-                              : "✓ Confirmar"}
+                          <button onClick={() => confirmarPedido(pedido.id)} disabled={confirmandoId === pedido.id}
+                            style={{ background:"linear-gradient(135deg,var(--green),#5A7A3A)", color:"#fff", border:"none", borderRadius:8, padding:"4px 10px", fontSize:".68rem", fontWeight:600, cursor:confirmandoId===pedido.id?"not-allowed":"pointer", opacity:confirmandoId===pedido.id?.6:1, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", transition:"opacity .2s" }}>
+                            {confirmandoId === pedido.id ? <><span className="spin">⏳</span> Confirmando...</> : "✓ Confirmar"}
+                          </button>
+                        )}
+                        {/* Entregar — confirmado */}
+                        {pedido.status === "confirmado" && (
+                          <button onClick={() => entregarPedido(pedido.id)} disabled={entregandoId === pedido.id}
+                            style={{ background:entregandoId===pedido.id?"#aaa":"linear-gradient(135deg,#4A8AB5,#2E6A8E)", color:"#fff", border:"none", borderRadius:8, padding:"4px 10px", fontSize:".68rem", fontWeight:600, cursor:entregandoId===pedido.id?"not-allowed":"pointer", fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", transition:"opacity .2s" }}>
+                            {entregandoId === pedido.id ? <><span className="spin">⏳</span> Entregando...</> : "🚚 Entregar"}
+                          </button>
+                        )}
+                        {/* Toggle Pago — confirmado ou entregue */}
+                        {(pedido.status === "confirmado" || pedido.status === "entregue") && (
+                          <button onClick={() => togglePago(pedido.id, pedido.pago)} disabled={pagandoId === pedido.id}
+                            style={{ background:pedido.pago?"#7A8B5B":"transparent", color:pedido.pago?"#fff":"var(--green)", border:`1px solid ${pedido.pago?"#7A8B5B":"var(--green)"}`, borderRadius:8, padding:"4px 10px", fontSize:".68rem", fontWeight:600, cursor:pagandoId===pedido.id?"not-allowed":"pointer", opacity:pagandoId===pedido.id?.6:1, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", transition:"all .2s" }}>
+                            {pagandoId === pedido.id ? <><span className="spin">⏳</span> Salvando...</> : pedido.pago ? "💰 Pago ✓" : "💰 Marcar Pago"}
+                          </button>
+                        )}
+                        {/* Cancelar — pendente ou confirmado */}
+                        {(pedido.status === "pendente" || pedido.status === "confirmado") && (
+                          <button onClick={() => cancelarPedido(pedido.id)} disabled={cancelandoId === pedido.id}
+                            style={{ background:"transparent", color:"var(--mu)", border:"1px solid var(--bd)", borderRadius:8, padding:"4px 10px", fontSize:".65rem", cursor:cancelandoId===pedido.id?"not-allowed":"pointer", opacity:cancelandoId===pedido.id?.5:1, fontFamily:"'Poppins',sans-serif", whiteSpace:"nowrap", transition:"opacity .2s" }}>
+                            {cancelandoId === pedido.id ? <><span className="spin">⏳</span> Cancelando...</> : "✕ Cancelar"}
                           </button>
                         )}
                       </div>
