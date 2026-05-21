@@ -98,6 +98,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
 | Bootstrap novo projeto | k/projeto/k-bootstrap-caos | k/sistema/k-sys-nucleo-minimo | — |
 | Continuidade cognitiva | r/r-continuidade-cognitiva | r/r-telemetria-cognitiva | r/r-staleness-detection |
+| Contingência de executor | r/r-executor-contingencia | r/r-handoff-codex | — |
 | Primeiro snapshot de domínio | r/r-recuperacao-contextual | k/sistema/k-sys-registry-dominios | — |
 | Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
 
@@ -130,6 +131,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-telemetria-cognitiva | 1.2 | registro mínimo de sessão para continuidade entre agentes |
 | r-anti-burocracia | 1.0 | limites operacionais contra hipercomplexidade |
 | r-continuidade-cognitiva | 1.0 | contratos e métricas de continuidade sistêmica |
+| r-executor-contingencia | 1.0 | contingência de executor + taxonomia + aprendizado T-GEM.0 |
 
 ---
 

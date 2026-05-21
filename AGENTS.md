@@ -152,6 +152,34 @@ Preparado para:
 
 ---
 
+## PRINCÍPIO DO ISOLAMENTO OPERACIONAL POR SESSÃO
+
+O C.A.O.S é um runtime institucional distribuído e session-bound.
+
+O estado operacional existe EXCLUSIVAMENTE em:
+- artefatos explicitamente carregados na sessão ativa
+- contratos institucionais declarados na sessão ativa
+- snapshots e telemetria recuperados na sessão ativa
+
+Fora dos artefatos carregados:
+- O agente retorna ao comportamento genérico base
+- Nenhum estado operacional persiste implicitamente
+- Nenhum protocolo C.A.O.S existe "de memória"
+
+Axioma: agente sem artefatos = agente genérico.
+        agente + artefatos C.A.O.S = runtime institucional temporário.
+
+Implicações operacionais obrigatórias:
+- Carregar AGENTS.md é sempre obrigatório — nunca opcional
+- A continuidade institucional pertence aos artefatos, não ao modelo
+- Nenhum agente deve operar sob protocolo C.A.O.S sem ter carregado os artefatos
+
+Fundamentação: Lewis et al. (2020) — RAG.
+O C.A.O.S generaliza memória não-paramétrica para governança institucional:
+o modelo é o substrate genérico; os artefatos fornecem o protocolo e o estado.
+
+---
+
 ## GOVERNANÇA
 
 Nenhuma alteração estrutural deve ser executada sem validação humana.
@@ -318,6 +346,8 @@ O executor NÃO deve:
 - expandir contexto desnecessariamente
 - executar sem instrução explicitamente validada
 - aceitar handoff com estado_atual ≠ VALIDADO
+- transferir estado operacional C.A.O.S para pesos do modelo (fine-tuning institucional)
+- operar sob protocolo C.A.O.S sem ter carregado os artefatos explicitamente desta sessão
 
 ---
 
@@ -354,6 +384,7 @@ Violação = próxima sessão paga o custo.
 | v3.9 | hardening institucional | **concluído** |
 | v4.0 | replicabilidade institucional | **concluído** |
 | v5.0 Sprint 5A/5B | continuidade cognitiva — snapshots + protocolos | **concluído** |
+| v5.0 retorno nominal | runtime session-bound formalizado + r-executor-contingencia | **concluído** |
 | v5.0 Sprint 5C | registry v2.0 — dependências + staleness budget | aguarda 30+ ciclos |
 | v5.5 | memória semântica institucional (SBERT) | planejado |
 
