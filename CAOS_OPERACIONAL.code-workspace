@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../caos-core"
+		}
+	],
+	"settings": {
+		"claudeCode.useTerminal": true
+	}
+}
