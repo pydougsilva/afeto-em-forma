@@ -5,8 +5,8 @@ versao: C.A.O.S v1.1
 
 Definir como:
 - usuário
-- Claude
-- Codex
+- agente_orquestrador
+- agente_executor
 - RAG
 - skills
 
@@ -41,7 +41,7 @@ direção estratégica humana.
 
 ---
 
-## CLAUDE
+## agente_orquestrador
 
 Responsabilidade:
 - arquitetura
@@ -55,7 +55,7 @@ orquestrador cognitivo.
 
 ---
 
-## CODEX
+## agente_executor
 
 Responsabilidade:
 - executar alterações
@@ -94,11 +94,11 @@ especialização operacional.
 # FLUXO OPERACIONAL
 
 1. usuário define objetivo
-2. Claude classifica tarefa
+2. agente_orquestrador classifica tarefa
 3. index.md seleciona módulos
 4. RAG fornece contexto mínimo
 5. skill especializada é ativada
-6. Codex executa alterações
+6. agente_executor executa alterações
 7. usuário valida resultado
 8. RAG é atualizado
 9. sistema preserva memória
@@ -107,10 +107,10 @@ especialização operacional.
 
 # PRINCÍPIO DE CONTEXTO
 
-Claude:
+agente_orquestrador:
 deve pensar.
 
-Codex:
+agente_executor:
 deve executar.
 
 RAG:

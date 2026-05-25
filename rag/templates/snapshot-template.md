@@ -40,8 +40,8 @@ artefatos_alterados:
   - [arquivo ou objeto alterado 1]
   - [arquivo ou objeto alterado 2]
 
-agente_orquestrador: Claude
-agente_executor: [Codex | operador humano | Claude]
+agente_orquestrador: [identidade concreta do agente_orquestrador]
+agente_executor: [agente_executor | operador humano | agente_orquestrador]
 
 # v3.5 — preencher quando aplicável
 commit_hash: null

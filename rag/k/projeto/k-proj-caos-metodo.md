@@ -118,7 +118,7 @@ padronizar entregas.
 
 ---
 
-## CODEX
+## agente_executor
 
 Responsabilidade:
 - executar
@@ -131,7 +131,7 @@ executor operacional.
 
 ---
 
-## CLAUDE
+## agente_orquestrador
 
 Responsabilidade:
 - arquitetura
@@ -152,7 +152,7 @@ orquestrador estratégico.
 4. /r define comportamento
 5. /k fornece contexto
 6. skill especializada executa
-7. Codex aplica alterações
+7. agente_executor aplica alterações
 8. relatório registra evolução
 
 ---

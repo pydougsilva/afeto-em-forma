@@ -4,7 +4,7 @@ versao: 1.0
 ## OBJETIVO
 
 Define a estrutura canônica dos documentos de comunicação
-entre Claude (orquestrador) e Codex (executor) no C.A.O.S.
+entre agente_orquestrador (orquestrador) e agente_executor (executor) no C.A.O.S.
 
 Responde à pergunta:
 "qual é o formato completo de um handoff e de um retorno?"
@@ -15,15 +15,15 @@ Responde à pergunta:
 
 O protocolo de handoff consiste em dois documentos:
 
-1. **Handoff** — emitido por Claude para Codex
-2. **Retorno** — emitido por Codex para Claude
+1. **Handoff** — emitido por agente_orquestrador para agente_executor
+2. **Retorno** — emitido por agente_executor para agente_orquestrador
 
 Cada documento possui campos obrigatórios e opcionais.
 Campos ausentes tornam o documento inválido ou incompleto.
 
 ---
 
-## DOCUMENTO 1 — HANDOFF (Claude → Codex)
+## DOCUMENTO 1 — HANDOFF (agente_orquestrador → agente_executor)
 
 ### Estrutura completa
 
@@ -60,8 +60,8 @@ handoff:
     riscos_ativos: [lista ou vazio]
 
   # Rastreabilidade de agentes
-  agente_orquestrador: Claude
-  agente_executor: Codex
+  agente_orquestrador: [identidade concreta do agente_orquestrador]
+  agente_executor: [identidade concreta do agente_executor]
 
   # Módulos RAG usados na análise
   modulos_usados:
@@ -85,8 +85,8 @@ handoff:
 | `estado_atual` | enum | deve ser exatamente VALIDADO |
 | `timestamp_validacao` | ISO 8601 | quando o usuário aprovou |
 | `instrucao` | text | não pode ser vazio ou nulo |
-| `agente_orquestrador` | string | Claude |
-| `agente_executor` | string | Codex (ou agente designado) |
+| `agente_orquestrador` | string | identidade concreta de quem exerce o papel |
+| `agente_executor` | string | identidade concreta de quem exerce o papel |
 
 ### Valores válidos — campo `tarefa`
 
@@ -103,11 +103,11 @@ rag | multi-tenant | debugging | auditoria | snapshot
 | `branch_sugerido` | nome do branch ops/ para a operação |
 
 Em v3.0 esses campos devem ser enviados como `null`.
-Codex ignora campos `null`. Não falha por presença de campos opcionais.
+agente_executor ignora campos `null`. Não falha por presença de campos opcionais.
 
 ---
 
-## DOCUMENTO 2 — RETORNO (Codex → Claude)
+## DOCUMENTO 2 — RETORNO (agente_executor → agente_orquestrador)
 
 ### Estrutura completa
 
@@ -122,7 +122,7 @@ retorno_codex:
   estado: [CONCLUÍDO | FALHOU | HANDOFF_INVALIDO]
 
   # Rastreabilidade
-  agente_executor: Codex
+  agente_executor: [identidade concreta do agente_executor]
 
   # Resultado (obrigatório quando estado = CONCLUÍDO)
   resultado: [descrição do que foi feito]
@@ -139,7 +139,7 @@ retorno_codex:
   # Rejeição (obrigatório quando estado = HANDOFF_INVALIDO)
   campo_invalido: [campo que falhou na validação]
   motivo_rejeicao: [descrição do problema]
-  acao_recomendada: [o que Claude deve corrigir]
+  acao_recomendada: [o que agente_orquestrador deve corrigir]
 
   # Campo opcional — v3.5 Git (inativo em v3.0)
   commit_hash: null
@@ -156,7 +156,7 @@ Execução iniciada mas falhou durante operação.
 Campos `erro_descricao`, `artefatos_afetados`, `reversao_parcial` e `estado_atual_sistema` obrigatórios.
 
 **HANDOFF_INVALIDO:**
-Codex não iniciou execução — handoff rejeitado na validação.
+agente_executor não iniciou execução — handoff rejeitado na validação.
 Campos `campo_invalido`, `motivo_rejeicao` e `acao_recomendada` obrigatórios.
 Diferença crítica: FALHOU = execução começou e falhou. HANDOFF_INVALIDO = nunca começou.
 
@@ -206,8 +206,8 @@ handoff:
     resultado_anterior: null
     riscos_ativos: []
 
-  agente_orquestrador: Claude
-  agente_executor: Codex
+  agente_orquestrador: [identidade concreta do agente_orquestrador]
+  agente_executor: [identidade concreta do agente_executor]
 
   modulos_usados:
     - r/r-rls-padrao
@@ -238,8 +238,8 @@ handoff:
   instrucao: |
     [instrução presente]
 
-  agente_orquestrador: Claude
-  agente_executor: Codex
+  agente_orquestrador: [identidade concreta do agente_orquestrador]
+  agente_executor: [identidade concreta do agente_executor]
   modulos_usados: []
   commit_type: null
   branch_sugerido: null
@@ -247,7 +247,7 @@ handoff:
 
 Motivo da rejeição: `estado_atual` é PROPOSTO em vez de VALIDADO.
 `timestamp_validacao` está ausente.
-Codex retorna HANDOFF_INVALIDO sem executar.
+agente_executor retorna HANDOFF_INVALIDO sem executar.
 
 ---
 
@@ -260,7 +260,7 @@ retorno_codex:
   timestamp_execucao: "2026-05-09T11:10:00-03:00"
 
   estado: CONCLUÍDO
-  agente_executor: Codex
+  agente_executor: [identidade concreta do agente_executor]
 
   resultado: |
     Migration aplicada com sucesso.
@@ -292,7 +292,7 @@ retorno_codex:
   timestamp_execucao: "2026-05-09T11:08:00-03:00"
 
   estado: FALHOU
-  agente_executor: Codex
+  agente_executor: [identidade concreta do agente_executor]
 
   resultado: null
   artefatos_alterados: null
@@ -326,7 +326,7 @@ retorno_codex:
   timestamp_execucao: null
 
   estado: HANDOFF_INVALIDO
-  agente_executor: Codex
+  agente_executor: [identidade concreta do agente_executor]
 
   resultado: null
   artefatos_alterados: null
@@ -365,9 +365,9 @@ retorno_codex:
 Se uma sessão é interrompida com ciclo em estado VALIDADO:
 
 1. Nova sessão carrega snapshot com estado_atual = VALIDADO
-2. Claude lê campos do snapshot: instrucao, dominio, snapshot_ref
-3. Claude reconstrói handoff com mesmo ciclo_id
-4. Codex verifica: ciclo_id já foi processado?
+2. agente_orquestrador lê campos do snapshot: instrucao, dominio, snapshot_ref
+3. agente_orquestrador reconstrói handoff com mesmo ciclo_id
+4. agente_executor verifica: ciclo_id já foi processado?
    - Sim → retornar resultado anterior (idempotente)
    - Não → processar normalmente
 5. Fluxo continua a partir do ponto de interrupção

@@ -32,7 +32,7 @@ o desenvolvedor muda de ambiente, ou o executor muda de ferramenta.
 O C.A.O.S agrega valor quando:
 
 - O projeto tem mais de uma sessão de trabalho com IA por semana
-- Há troca de ferramentas de IA (Claude → Codex → Claude)
+- Há troca de ferramentas de IA (agente_orquestrador → agente_executor → agente_orquestrador)
 - O projeto tem múltiplos domínios interdependentes (banco, frontend, auth)
 - Há risco de perder decisões arquiteturais entre sessões
 - Mais de uma pessoa usa IA no projeto
@@ -70,9 +70,9 @@ do que os ciclos formais custam em overhead.
 4. Identificar domínio       → qual é o alvo?
 5. Recuperar snapshot        → há histórico?
 6. Carregar módulos (/r, /k) → máximo 3 por ciclo
-7. Propor instrução          → Claude analisa e propõe
+7. Propor instrução          → agente_orquestrador analisa e propõe
 8. Validar com usuário       → gate obrigatório
-9. Executar                  → Codex ou operador humano
+9. Executar                  → agente_executor ou operador humano
 10. Registrar snapshot       → preservar decisão
 11. Registrar telemetria     → preservar contexto da sessão
 ```
@@ -87,7 +87,7 @@ Para desenvolvedores que ainda não usam o C.A.O.S:
 1. Ler AGENTS.md do projeto (5 min)
 2. Ler rag/index.md (5 min)
 3. Ler um snapshot existente (5 min)
-4. Executar um ciclo simples com Claude usando o protocolo (15 min)
+4. Executar um ciclo simples com agente_orquestrador usando o protocolo (15 min)
 
 Após o primeiro ciclo real, o sistema começa a fazer sentido.
 Documentação adicional é lida por demanda.
@@ -195,7 +195,7 @@ para que admin access seja legítimo.
 2. **LLMs não são determinísticos:** replay produz reconstrução, não reprodução exata.
 3. **Evidência ≠ corretude:** o Git trail prova que algo aconteceu, não que foi correto.
 4. **Escala não testada:** o sistema foi validado em 1 projeto solo. Equipes maiores precisam adaptar.
-5. **Identidade do executor é declarativa:** "Codex executou" é uma afirmação, não uma prova técnica (até v4.5).
+5. **Identidade do executor é declarativa:** "agente_executor executou" é uma afirmação, não uma prova técnica (até v4.5).
 
 ---
 

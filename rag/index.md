@@ -18,8 +18,8 @@ Máximo recomendado:
 
 | Camada | Componente | Papel |
 |---|---|---|
-| Raciocínio | Claude | Classifica, analisa, propõe, orquestra, emite handoff |
-| Execução | Codex | Executa handoff validado, retorna resultado estruturado |
+| Raciocínio | agente_orquestrador | Classifica, analisa, propõe, orquestra, emite handoff |
+| Execução | agente_executor | Executa handoff validado, retorna resultado estruturado |
 | Memória modular | RAG /r e /k | Regras e conhecimento operacional |
 | Memória institucional | Snapshots | Histórico de decisões homologadas |
 | Registry de domínios | k-sys-registry-dominios | Catálogo canônico com aliases e pesos |
@@ -55,7 +55,7 @@ Quando módulos v3.0 não estiverem carregados, o sistema opera em modo v2.2:
 | Capacidade | Modo v3.0 | Fallback v2.2 |
 |---|---|---|
 | Matching de domínio | score ponderado por aliases (r-matching-conceito) | heurístico por substring (r-auto-recuperacao-contextual) |
-| Handoff Claude→Codex | protocolo estruturado (r-handoff-codex) | instrução textual informal |
+| Handoff agente_orquestrador→agente_executor | protocolo estruturado (r-handoff-executor) | instrução textual informal |
 | Rastreamento de estados | estados formais (r-estados-ciclo) | sem rastreamento |
 | Snapshots | base + incremental (r-snapshots-incrementais) | somente base |
 | Leitura Git + drift | r-git-operacional ativo | etapa 0b pulada |
@@ -85,7 +85,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Domínio com histórico | r/r-recuperacao-contextual | — | — |
 | Orquestração / sessão nova | r/r-orquestracao-caos | — | — |
 | Atualização do RAG | r/r-atualizacao-rag | — | — |
-| Handoff estruturado | r/r-handoff-codex | k/sistema/k-sys-handoff-format | r/r-estados-ciclo |
+| Handoff estruturado | r/r-handoff-executor | k/sistema/k-sys-handoff-format | r/r-estados-ciclo |
 | Retomada de ciclo | r/r-estados-ciclo | r/r-recuperacao-contextual | k/sistema/k-sys-handoff-format |
 | Matching de domínio | r/r-matching-conceito | k/sistema/k-sys-registry-dominios | — |
 | Snapshot incremental | r/r-snapshots-incrementais | r/r-recuperacao-contextual | — |
@@ -98,7 +98,8 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Concorrência de ciclos | r/r-concurrency-guard | r/r-estados-ciclo | — |
 | Bootstrap novo projeto | k/projeto/k-bootstrap-caos | k/sistema/k-sys-nucleo-minimo | — |
 | Continuidade cognitiva | r/r-continuidade-cognitiva | r/r-telemetria-cognitiva | r/r-staleness-detection |
-| Contingência de executor | r/r-executor-contingencia | r/r-handoff-codex | — |
+| Contingência de executor | r/r-executor-contingencia | r/r-handoff-executor | — |
+| Restauracao de orquestrador | r/r-restauracao-orquestrador | r/r-estados-ciclo | r/r-telemetria-cognitiva |
 | Primeiro snapshot de domínio | r/r-recuperacao-contextual | k/sistema/k-sys-registry-dominios | — |
 | Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
 
@@ -113,12 +114,12 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-sql-idiomatico | 1.0 | regras para migrations SQL |
 | r-rls-padrao | 1.0 | regras de isolamento multi-tenant |
 | r-hotfix-padrao | 1.0 | padrão de hotfix cirúrgico no frontend |
-| r-orquestracao-caos | v1.1 | comportamento do orquestrador Claude |
+| r-orquestracao-caos | v1.1 | comportamento do orquestrador agente_orquestrador |
 | r-atualizacao-rag | v1.1 | quando e como evoluir o RAG |
 | r-recuperacao-contextual | 1.1 | recuperação de snapshots históricos entre sessões |
 | r-auto-recuperacao-contextual | 1.0 | detecção automática de domínios e disparo de recovery |
 | r-estados-ciclo | 2.0 | estados formais do ciclo — COMMITADO/VERIFICADO/DIVERGENTE ativos |
-| r-handoff-codex | 2.0 | protocolo handoff — campos v3.5 ativos condicionalmente |
+| r-handoff-executor | 2.0 | protocolo handoff — campos v3.5 ativos condicionalmente |
 | r-matching-conceito | 1.0 | matching por score ponderado de aliases |
 | r-snapshots-incrementais | 1.0 | cadeia de deltas sobre snapshot base |
 | r-git-operacional | 1.0 | leitura e interpretação do histórico Git |
@@ -132,6 +133,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | r-anti-burocracia | 1.0 | limites operacionais contra hipercomplexidade |
 | r-continuidade-cognitiva | 1.0 | contratos e métricas de continuidade sistêmica |
 | r-executor-contingencia | 1.0 | contingência de executor + taxonomia + aprendizado T-GEM.0 |
+| r-restauracao-orquestrador | 1.0 | restauracao do papel de agente_orquestrador sem dependencia nominal |
 
 ---
 
@@ -211,7 +213,7 @@ Cada módulo:
 | k-sys-registry-dominios | /k | registry estruturado de domínios |
 | r-estados-ciclo | /r | estados formais do ciclo |
 | k-sys-handoff-format | /k | estrutura canônica do handoff |
-| r-handoff-codex | /r | protocolo handoff Claude→Codex |
+| r-handoff-executor | /r | protocolo handoff agente_orquestrador→agente_executor |
 | r-matching-conceito | /r | matching por score ponderado |
 | r-snapshots-incrementais | /r | cadeia incremental de deltas |
 
@@ -239,7 +241,7 @@ Cada módulo:
 
 Módulos ativados condicionalmente (Sprint 4):
 - r-estados-ciclo v2.0 (COMMITADO, VERIFICADO, DIVERGENTE com r-git-operacional)
-- r-handoff-codex v2.0 (campos commit_type, branch_sugerido, commit_hash ativos)
+- r-handoff-executor v2.0 (campos commit_type, branch_sugerido, commit_hash ativos)
 
 ### v5.0 Sprint 5A/5B — implementado
 

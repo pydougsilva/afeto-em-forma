@@ -8,12 +8,12 @@ para engenharia de software assistida por agentes de IA.
 
 Arquitetura operacional:
 
-- Claude → Orquestrador estratégico, raciocínio e emissão de handoff
+- agente_orquestrador → Orquestrador estratégico, raciocínio e emissão de handoff
 - RAG (/rag/k e /rag/r) → memória modular estruturada
 - Snapshots → memória institucional operacional persistente
 - Registry → catálogo canônico de domínios operacionais
 - Skills → especializações operacionais
-- Codex → executor técnico controlado via handoff estruturado
+- agente_executor → executor técnico controlado via handoff estruturado
 - VSCode → ambiente operacional
 - Usuário → validação e governança
 
@@ -45,8 +45,8 @@ e executar com base em memória semântica institucional — sempre sob supervis
 
 | Camada | Componente | Papel |
 |---|---|---|
-| Raciocínio | Claude | Classifica, analisa, propõe, orquestra, emite handoff |
-| Execução | Codex | Executa handoff validado, retorna resultado estruturado |
+| Raciocínio | agente_orquestrador | Classifica, analisa, propõe, orquestra, emite handoff |
+| Execução | agente_executor | Executa handoff validado, retorna resultado estruturado |
 | Memória modular | RAG /r e /k | Regras e conhecimento operacional |
 | Memória institucional | Snapshots | Histórico de decisões homologadas |
 | Registry | k-sys-registry-dominios | Catálogo canônico de domínios com aliases |
@@ -57,11 +57,31 @@ Nenhum agente executa sem instrução validada.
 
 ---
 
-## RESPONSABILIDADES DE CLAUDE
+## PRINCIPIO INSTITUCIONAL DE PAPEIS
 
-Claude é exclusivamente orquestrador. Nunca executa diretamente.
+O C.A.O.S depende de papeis.
+Nunca depende de identidades.
 
-Em cada ciclo operacional, Claude:
+Ferramentas sao implementacoes possiveis.
+Papeis sao estrutura institucional.
+
+Regras:
+- `agente_orquestrador` e o papel responsavel por raciocinio, proposta,
+  handoff, validacao de retorno, validacao de diff e registro institucional.
+- `agente_executor` e o papel responsavel por executar instrucao validada,
+  obedecer ao handoff, retornar resultado estruturado e preservar escopo.
+- O nome de uma ferramenta ou fornecedor pode aparecer como evidencia historica,
+  telemetria ou identificacao factual de execucao.
+- O nome de uma ferramenta ou fornecedor nunca deve ser requisito estrutural
+  para continuidade, handoff, Git governance, snapshot ou telemetria.
+
+---
+
+## RESPONSABILIDADES DE agente_orquestrador
+
+agente_orquestrador é exclusivamente orquestrador. Nunca executa diretamente.
+
+Em cada ciclo operacional, agente_orquestrador:
 
 1. Detecta gatilho e aplica matching por conceito sobre o registry
 2. Recupera snapshot relevante se domínio tem histórico
@@ -70,37 +90,37 @@ Em cada ciclo operacional, Claude:
 5. Identifica riscos (incluindo riscos ativos do snapshot)
 6. Gera instrução estruturada determinística
 7. Valida com o usuário e recebe aprovação
-8. Emite handoff estruturado para Codex (estado: VALIDADO)
-9. Recebe retorno de Codex e valida resultado
+8. Emite handoff estruturado para agente_executor (estado: VALIDADO)
+9. Recebe retorno de agente_executor e valida resultado
 10. Registra snapshot (base ou incremental)
 
-O que Claude nunca faz:
+O que agente_orquestrador nunca faz:
 - executar instrução diretamente no banco ou sistema
-- criar commits (reservado a v3.5 — Codex)
+- criar commits (reservado a v3.5 — agente_executor)
 - tomar decisão arquitetural sem apresentar ao usuário
-- marcar ciclo como CONCLUÍDO sem retorno de Codex
+- marcar ciclo como CONCLUÍDO sem retorno de agente_executor
 
 ---
 
-## RESPONSABILIDADES DE CODEX
+## RESPONSABILIDADES DE agente_executor
 
-Codex é exclusivamente executor. Nunca decide arquiteturalmente.
+agente_executor é exclusivamente executor. Nunca decide arquiteturalmente.
 
-Em cada ciclo operacional, Codex:
+Em cada ciclo operacional, agente_executor:
 
-1. Recebe handoff estruturado de Claude
+1. Recebe handoff estruturado de agente_orquestrador
 2. Valida todos os campos obrigatórios do handoff
 3. Verifica idempotência: ciclo_id já foi processado?
 4. Executa instrução exatamente como especificada
 5. Não modifica escopo além do domínio declarado
-6. Retorna resultado estruturado para Claude (CONCLUÍDO | FALHOU | HANDOFF_INVALIDO)
+6. Retorna resultado estruturado para agente_orquestrador (CONCLUÍDO | FALHOU | HANDOFF_INVALIDO)
 
-O que Codex nunca faz:
+O que agente_executor nunca faz:
 - aceitar handoff com estado_atual ≠ VALIDADO
 - tomar decisões arquiteturais não previstas na instrução
 - modificar domínios fora do escopo do handoff
 - omitir campos obrigatórios do retorno
-- interpretar instrução condicional — escalar para Claude
+- interpretar instrução condicional — escalar para agente_orquestrador
 
 ---
 
@@ -111,10 +131,10 @@ parte do conhecimento gerado é transferido para a memória institucional do C.A
 
 Este processo — transferência cognitiva — funciona da seguinte forma:
 
-1. Claude analisa e propõe
+1. agente_orquestrador analisa e propõe
 2. Usuário valida (gate obrigatório)
-3. Codex executa via handoff estruturado
-4. Claude valida resultado retornado por Codex
+3. agente_executor executa via handoff estruturado
+4. agente_orquestrador valida resultado retornado por agente_executor
 5. Ciclo é registrado como snapshot (base ou incremental)
 6. Snapshot integra a memória institucional permanentemente
 
@@ -279,25 +299,25 @@ Etapa 6    Validar com usuário [GATE OBRIGATÓRIO]
            → proposta apresentada com snapshot de referência
            → usuário aprova ou rejeita
 
-Etapa 7    Emitir handoff estruturado para Codex
-           r-handoff-codex
+Etapa 7    Emitir handoff estruturado para agente_executor
+           r-handoff-executor
            → ciclo_id único
            → estado_atual: VALIDADO
            → instrução completa
 
-Etapa 7a   [v3.5 — com r-git-operacional] Codex cria branch ops/ e commit institucional
+Etapa 7a   [v3.5 — com r-git-operacional] agente_executor cria branch ops/ e commit institucional
            r-commit-governance
            → branch: ops/[domínio-abreviado]-[YYYYMMDD]
            → commit: [tipo](domínio) com metadados obrigatórios
-           → Codex retorna commit_hash e branch no resultado
+           → agente_executor retorna commit_hash e branch no resultado
 
-Etapa 7b   [v3.5 — com r-git-operacional] Claude valida diff do commit
+Etapa 7b   [v3.5 — com r-git-operacional] agente_orquestrador valida diff do commit
            r-git-operacional
            → diff carregado e comparado com instrução autorizada
            → correspondência: ciclo → VERIFICADO → CONCLUÍDO
            → divergência: ciclo → DIVERGENTE → retornar ao usuário com evidência
 
-Etapa 8    Codex executa e retorna resultado estruturado
+Etapa 8    agente_executor executa e retorna resultado estruturado
            Modo v3.0: CONCLUÍDO | FALHOU | HANDOFF_INVALIDO
            Modo v3.5: CONCLUÍDO com commit_hash | FALHOU | HANDOFF_INVALIDO
 
@@ -323,7 +343,7 @@ Quando módulos v3.0 não estão carregados, o sistema opera em modo v2.2.
 | Módulo ausente | Comportamento de fallback |
 |---|---|
 | r-matching-conceito | matching heurístico por substring (r-auto-recuperacao-contextual) |
-| r-handoff-codex | instrução textual informal sem protocolo |
+| r-handoff-executor | instrução textual informal sem protocolo |
 | r-estados-ciclo | sem rastreamento de estado do ciclo |
 | r-snapshots-incrementais | apenas snapshots base completos |
 | r-git-operacional | sem leitura de histórico Git — etapa 0b pulada |
@@ -393,7 +413,7 @@ Violação = próxima sessão paga o custo.
 Cinco primitivos implementados:
 - registry estruturado de domínios (k-sys-registry-dominios)
 - estados formais do ciclo (r-estados-ciclo)
-- handoff estruturado Claude→Codex (k-sys-handoff-format + r-handoff-codex)
+- handoff estruturado agente_orquestrador→agente_executor (k-sys-handoff-format + r-handoff-executor)
 - matching por conceito (r-matching-conceito)
 - snapshots incrementais (r-snapshots-incrementais)
 
@@ -409,7 +429,7 @@ Seis módulos implementados:
 
 Módulos ativados condicionalmente:
 - r-estados-ciclo v2.0 (COMMITADO, VERIFICADO, DIVERGENTE ativos com r-git-operacional)
-- r-handoff-codex v2.0 (commit_type, branch_sugerido, commit_hash ativos)
+- r-handoff-executor v2.0 (commit_type, branch_sugerido, commit_hash ativos)
 
 ### v4.0 — planejado
 

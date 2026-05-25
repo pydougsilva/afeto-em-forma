@@ -3,14 +3,14 @@ versao: 1.0
 
 ## OBJETIVO
 
-Definir como Claude lê e interpreta histórico Git operacionalmente
+Definir como agente_orquestrador lê e interpreta histórico Git operacionalmente
 no fluxo do C.A.O.S.
 
 Responde à pergunta:
-"quando e como Claude usa histórico Git para enriquecer a análise?"
+"quando e como agente_orquestrador usa histórico Git para enriquecer a análise?"
 
 Este módulo define leitura — não escrita.
-Claude nunca cria commits, branches ou altera o repositório.
+agente_orquestrador nunca cria commits, branches ou altera o repositório.
 
 ---
 
@@ -47,7 +47,7 @@ Se qualquer condição falhar:
 
 ## METADADOS PADRÃO — LEITURA POR DEFAULT
 
-Por padrão, Claude lê apenas metadados — nunca diff completo.
+Por padrão, agente_orquestrador lê apenas metadados — nunca diff completo.
 
 Campos extraídos por commit:
 
@@ -73,16 +73,16 @@ O que NÃO é carregado por padrão:
 Diff completo é carregado apenas em três situações explícitas:
 
 **Situação 1 — Divergência detectada em etapa 7b**
-Claude compara instrução autorizada ↔ execução de Codex.
+agente_orquestrador compara instrução autorizada ↔ execução de agente_executor.
 Identificada divergência → carregar diff para detalhar o que divergiu.
 
 **Situação 2 — Replay operacional solicitado**
-Usuário ou Claude solicita reconstrução de ciclo histórico.
+Usuário ou agente_orquestrador solicita reconstrução de ciclo histórico.
 r-replay-operacional requer o diff para reconstituir a instrução.
 
 **Situação 3 — Auditoria histórica explícita**
 Usuário solicita auditoria de execuções passadas num domínio.
-Claude carrega diff dos commits relevantes para análise.
+agente_orquestrador carrega diff dos commits relevantes para análise.
 
 Em todos os outros casos: apenas metadados.
 
@@ -105,7 +105,7 @@ Contexto mínimo é princípio arquitetural inviolável.
 
 ## DETECÇÃO DE DRIFT OPERACIONAL
 
-Claude identifica drift ao comparar snapshot ativo com histórico Git do domínio.
+agente_orquestrador identifica drift ao comparar snapshot ativo com histórico Git do domínio.
 
 ### Tipo 1 — Snapshot sem commit correspondente
 
@@ -119,7 +119,7 @@ Sinalização:
 
 Contexto:
   Ciclo foi concluído antes de v3.5 estar ativo, ou execução ocorreu
-  sem Codex criar commit institucional.
+  sem agente_executor criar commit institucional.
 
 Consequência operacional:
   Registrar ausência de evidência. Não bloquear ciclo atual.
@@ -144,7 +144,7 @@ Contexto:
 Consequência operacional:
   Sinalizar ao usuário antes de prosseguir com qualquer análise.
   Não usar esse commit como referência de ciclo.
-  Claude deve identificar se o commit foi intencional ou acidental.
+  agente_orquestrador deve identificar se o commit foi intencional ou acidental.
 ```
 
 ### Tipo 3 — Decisão mais recente que última execução
@@ -223,9 +223,9 @@ se r-git-operacional NÃO carregado:
 
 ---
 
-## O QUE CLAUDE NÃO FAZ
+## O QUE agente_orquestrador NÃO FAZ
 
-Claude nunca:
+agente_orquestrador nunca:
 
 - Cria commits
 - Cria ou deleta branches
@@ -241,12 +241,12 @@ Claude nunca:
 
 ## INTEGRAÇÃO COM r-estados-ciclo
 
-A leitura Git informa o estado atual do domínio antes de Claude classificar:
+A leitura Git informa o estado atual do domínio antes de agente_orquestrador classificar:
 
 ```
 Leitura Git na etapa 0b
   ↓
-Claude identifica: último ciclo está em qual estado?
+agente_orquestrador identifica: último ciclo está em qual estado?
   → CONCLUÍDO com commit_hash: ciclo completo e verificado
   → CONCLUÍDO sem commit_hash: ciclo v3.0 sem evidência
   → VALIDADO: ciclo pendente de execução (retomável)
@@ -272,7 +272,7 @@ Nunca:
 ## RESULTADO ESPERADO
 
 Quando r-git-operacional está carregado:
-- Claude chega à etapa 1 com contexto histórico real do domínio
+- agente_orquestrador chega à etapa 1 com contexto histórico real do domínio
 - Drift identificado é explicitamente apresentado ao usuário antes da proposta
 - A análise incorpora: o que foi decidido (snapshot) + o que foi executado (Git)
 - Ciclos sem evidência são identificados — não encobertos
