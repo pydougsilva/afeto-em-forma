@@ -192,7 +192,7 @@ O que fazer:
    matching heurístico por presença de termo no prompt.
 
 O fallback não é erro — é degradação controlada para comportamento v2.2.
-Claude deve sinalizar internamente que operou sem matching estruturado.
+agente_orquestrador deve sinalizar internamente que operou sem matching estruturado.
 
 ---
 

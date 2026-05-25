@@ -20,8 +20,8 @@ Qualquer agente com as capacidades requeridas pode ser executor.
 
 ### Nominal
 
-Executor designado (Codex) disponível e operando.
-Declaração: modo_operacao: nominal | executor_designado: Codex
+Executor designado para exercer `agente_executor` disponível e operando.
+Declaração: modo_operacao: nominal | executor_designado: [identidade concreta]
 Governança: padrão — handoff + checklist + retorno estruturado + gate humano.
 
 ---
@@ -34,19 +34,20 @@ Requer validação institucional prévia antes de ciclos reais de produto.
 Declaração obrigatória em todo commit, snapshot e telemetria:
   modo_operacao: fallback
   executor_designado: [nome]
-  executor_nominal_ausente: Codex
+  executor_nominal_ausente: [identidade concreta]
   motivo: [razão da indisponibilidade]
 
 ---
 
 ### Degradado
 
-Orquestrador (Claude) acumula execução.
+O mesmo agente acumula os papéis `agente_orquestrador` e `agente_executor`.
 
 Declaração obrigatória:
   modo_operacao: degradado
-  executor_temporario: Claude
-  executor_nominal_ausente: Codex
+  agente_orquestrador: [identidade concreta]
+  agente_executor: [mesma identidade concreta]
+  executor_nominal_ausente: [identidade concreta]
   motivo: [razão]
 
 Governança adicional:
@@ -101,7 +102,7 @@ Maturidade institucional:
 
 ## REGISTRO DE EXECUTORES
 
-### Codex (executor nominal)
+### Executor nominal (identidade concreta registrada por ciclo)
 
 ```
 compatibilidade_arquitetural: verificada
@@ -149,7 +150,7 @@ Quando o executor nominal retorna:
 
 | Este módulo | complementa |
 |---|---|
-| r-executor-contingencia | r-handoff-codex (protocolo de execução) |
+| r-executor-contingencia | r-handoff-executor (protocolo de execução) |
 | r-executor-contingencia | r-continuidade-cognitiva (contratos) |
 | r-executor-contingencia | r-orquestracao-caos (responsabilidades) |
 | r-executor-contingencia | AGENTS.md (axioma de isolamento operacional) |

@@ -25,15 +25,15 @@ O estado é consultado na retomada de ciclos interrompidos.
 
 ```
 DETECTADO
-    ↓ Claude conclui análise
+    ↓ agente_orquestrador conclui análise
 ANALISADO
-    ↓ Claude gera instrução estruturada
+    ↓ agente_orquestrador gera instrução estruturada
 PROPOSTO
     ↓ usuário aprova         ↓ usuário rejeita
 VALIDADO                  REJEITADO ──► (terminal)
-    ↓ handoff emitido para Codex
+    ↓ handoff emitido para agente_executor
 EXECUTANDO
-    ↓ Codex conclui         ↓ Codex falha
+    ↓ agente_executor conclui         ↓ agente_executor falha
 CONCLUÍDO               FALHOU ──► retorna a ANALISADO
     │
     ↓ rollback solicitado (excepcional)
@@ -44,9 +44,9 @@ Estados v3.5 — ativos quando r-git-operacional carregado:
 
 ```
 EXECUTANDO
-    ↓ Codex cria commit institucional
+    ↓ agente_executor cria commit institucional
 COMMITADO
-    ↓ Claude valida diff ↔ instrução   ↓ divergência detectada
+    ↓ agente_orquestrador valida diff ↔ instrução   ↓ divergência detectada
 VERIFICADO                           DIVERGENTE ──► retorna ao usuário
     ↓
 CONCLUÍDO
@@ -69,7 +69,7 @@ Modo v3.5 (com r-git-operacional carregado):
 Condição: domínio foi identificado no prompt (por matching ou menção explícita).
 Snapshot disponível se domínio tem histórico.
 
-Quem avança: Claude (ao iniciar análise)
+Quem avança: agente_orquestrador (ao iniciar análise)
 Registra no snapshot: estado = DETECTADO, timestamp, domínio identificado
 
 Campos obrigatórios antes de avançar para ANALISADO:
@@ -81,10 +81,10 @@ Campos obrigatórios antes de avançar para ANALISADO:
 
 ### ANALISADO
 
-Condição: análise arquitetural completa realizada por Claude.
+Condição: análise arquitetural completa realizada por agente_orquestrador.
 Riscos identificados. Contexto histórico consultado.
 
-Quem avança: Claude (ao gerar proposta)
+Quem avança: agente_orquestrador (ao gerar proposta)
 Registra no snapshot: estado = ANALISADO, timestamp, módulos usados, riscos identificados
 
 Campos obrigatórios antes de avançar para PROPOSTO:
@@ -96,7 +96,7 @@ Campos obrigatórios antes de avançar para PROPOSTO:
 
 ### PROPOSTO
 
-Condição: instrução estruturada gerada por Claude.
+Condição: instrução estruturada gerada por agente_orquestrador.
 Apresentada ao usuário para validação.
 
 Quem avança: usuário (via aprovação ou rejeição)
@@ -116,27 +116,27 @@ Transições válidas a partir de PROPOSTO:
 ### VALIDADO
 
 Condição: usuário aprovou a instrução proposta.
-Gate humano cumprido. Handoff pode ser emitido para Codex.
+Gate humano cumprido. Handoff pode ser emitido para agente_executor.
 
-Quem avança: Claude (ao emitir handoff)
+Quem avança: agente_orquestrador (ao emitir handoff)
 Registra no snapshot: estado = VALIDADO, timestamp, responsável_validacao = usuário
 
 Campos obrigatórios antes de avançar para EXECUTANDO:
-- handoff estruturado completo (r-handoff-codex)
+- handoff estruturado completo (r-handoff-executor)
 - ciclo_id gerado
 - agente_executor identificado
 
 Importante:
 VALIDADO é o único estado a partir do qual handoff pode ser emitido.
-Codex não deve aceitar handoff com estado ≠ VALIDADO.
+agente_executor não deve aceitar handoff com estado ≠ VALIDADO.
 
 ---
 
 ### EXECUTANDO
 
-Condição: Codex recebeu handoff válido e está executando a instrução.
+Condição: agente_executor recebeu handoff válido e está executando a instrução.
 
-Quem avança: Codex (ao concluir ou falhar)
+Quem avança: agente_executor (ao concluir ou falhar)
 Registra no snapshot: estado = EXECUTANDO, timestamp, agente_executor, ciclo_id
 
 Próximo estado — condicional:
@@ -146,12 +146,12 @@ Modo v3.5 (com r-git-operacional): avançar para COMMITADO
 
 Campos obrigatórios antes de avançar (ambos os modos):
 - execução concluída sem erros
-- resultado estruturado retornado para Claude
+- resultado estruturado retornado para agente_orquestrador
 - artefatos listados
 
 Campos adicionais obrigatórios para COMMITADO (modo v3.5):
-- commit_hash presente no retorno de Codex
-- branch presente no retorno de Codex
+- commit_hash presente no retorno de agente_executor
+- branch presente no retorno de agente_executor
 
 Campos obrigatórios antes de avançar para FALHOU:
 - descrição do erro
@@ -167,7 +167,7 @@ Snapshot atualizado com resultado final.
 
 Estado terminal positivo.
 
-Quem registra: Claude (após receber retorno de Codex)
+Quem registra: agente_orquestrador (após receber retorno de agente_executor)
 Registra no snapshot:
   estado = CONCLUÍDO
   timestamp
@@ -197,7 +197,7 @@ desde que seja um novo ciclo — não continuação do rejeitado.
 
 ### FALHOU
 
-Condição: Codex reportou falha durante a execução.
+Condição: agente_executor reportou falha durante a execução.
 Não é estado terminal — permite retomada.
 
 Registra no snapshot:
@@ -208,7 +208,7 @@ Registra no snapshot:
   reversao_parcial (boolean)
 
 Retorna a ANALISADO para nova análise com contexto da falha.
-Claude deve incluir a falha e seus detalhes na nova análise.
+agente_orquestrador deve incluir a falha e seus detalhes na nova análise.
 
 ---
 
@@ -232,15 +232,15 @@ Registra no snapshot:
 
 ### COMMITADO (v3.5 — ativo quando r-git-operacional carregado)
 
-Condição: Codex concluiu execução e criou commit institucional na branch ops/.
-Claude recebeu commit_hash e branch no retorno de Codex.
+Condição: agente_executor concluiu execução e criou commit institucional na branch ops/.
+agente_orquestrador recebeu commit_hash e branch no retorno de agente_executor.
 
-Quem avança: Claude (ao receber commit_hash válido no retorno de Codex)
+Quem avança: agente_orquestrador (ao receber commit_hash válido no retorno de agente_executor)
 Registra no snapshot: estado = COMMITADO, timestamp, commit_hash, branch
 
 Campos obrigatórios antes de avançar para VERIFICADO:
-- commit_hash presente no retorno de Codex
-- branch presente no retorno de Codex
+- commit_hash presente no retorno de agente_executor
+- branch presente no retorno de agente_executor
 - r-git-operacional carregado para executar verificação do diff
 
 Sem r-git-operacional: estado não ativado.
@@ -250,10 +250,10 @@ Ciclo vai de EXECUTANDO diretamente para CONCLUÍDO (modo v3.0).
 
 ### VERIFICADO (v3.5 — ativo quando r-git-operacional carregado)
 
-Condição: Claude comparou diff do commit com instrução autorizada.
+Condição: agente_orquestrador comparou diff do commit com instrução autorizada.
 Correspondência confirmada — sem divergência detectada.
 
-Quem avança: Claude (ao confirmar correspondência diff ↔ instrução)
+Quem avança: agente_orquestrador (ao confirmar correspondência diff ↔ instrução)
 Registra no snapshot: estado = VERIFICADO, timestamp, verificacao = aprovada
 
 Campos obrigatórios antes de avançar para CONCLUÍDO:
@@ -266,8 +266,8 @@ Sem r-git-operacional: estado não ativado.
 
 ### DIVERGENTE (v3.5 — ativo quando r-git-operacional carregado)
 
-Condição: Claude identificou divergência entre diff do commit e instrução autorizada.
-O que Codex executou não corresponde ao que foi autorizado.
+Condição: agente_orquestrador identificou divergência entre diff do commit e instrução autorizada.
+O que agente_executor executou não corresponde ao que foi autorizado.
 
 Quem avança: usuário (deve decidir sobre a divergência)
 Registra no snapshot: estado = DIVERGENTE, timestamp, divergencia_descricao
@@ -280,7 +280,7 @@ Transições válidas a partir de DIVERGENTE:
 - DIVERGENTE → PROPOSTO: usuário decide aceitar com ajuste na instrução
 - DIVERGENTE → REVERTIDO: usuário decide reverter a execução
 
-Claude nunca resolve divergência automaticamente.
+agente_orquestrador nunca resolve divergência automaticamente.
 Divergência é sempre apresentada ao usuário para decisão explícita.
 
 Sem r-git-operacional: estado não ativado.
@@ -291,19 +291,19 @@ Sem r-git-operacional: estado não ativado.
 
 | De | Para | Quem avança | Gate |
 |---|---|---|---|
-| DETECTADO | ANALISADO | Claude | — |
-| ANALISADO | PROPOSTO | Claude | — |
+| DETECTADO | ANALISADO | agente_orquestrador | — |
+| ANALISADO | PROPOSTO | agente_orquestrador | — |
 | PROPOSTO | VALIDADO | Usuário | obrigatório |
 | PROPOSTO | REJEITADO | Usuário | obrigatório |
-| VALIDADO | EXECUTANDO | Claude (via handoff) | — |
-| EXECUTANDO | CONCLUÍDO | Codex | — |
-| EXECUTANDO | FALHOU | Codex | — |
-| FALHOU | ANALISADO | Claude | — |
+| VALIDADO | EXECUTANDO | agente_orquestrador (via handoff) | — |
+| EXECUTANDO | CONCLUÍDO | agente_executor | — |
+| EXECUTANDO | FALHOU | agente_executor | — |
+| FALHOU | ANALISADO | agente_orquestrador | — |
 | CONCLUÍDO | REVERTIDO | Usuário | obrigatório |
-| EXECUTANDO | COMMITADO | Codex | — (v3.5 — r-git-operacional) |
-| COMMITADO | VERIFICADO | Claude | — (v3.5 — r-git-operacional) |
-| COMMITADO | DIVERGENTE | Claude | — (v3.5 — r-git-operacional) |
-| VERIFICADO | CONCLUÍDO | Claude | — (v3.5 — r-git-operacional) |
+| EXECUTANDO | COMMITADO | agente_executor | — (v3.5 — r-git-operacional) |
+| COMMITADO | VERIFICADO | agente_orquestrador | — (v3.5 — r-git-operacional) |
+| COMMITADO | DIVERGENTE | agente_orquestrador | — (v3.5 — r-git-operacional) |
+| VERIFICADO | CONCLUÍDO | agente_orquestrador | — (v3.5 — r-git-operacional) |
 | DIVERGENTE | PROPOSTO | Usuário | obrigatório (v3.5 — r-git-operacional) |
 | DIVERGENTE | REVERTIDO | Usuário | obrigatório (v3.5 — r-git-operacional) |
 
@@ -358,7 +358,7 @@ Regras de retomada:
 Nunca:
 - avançar de PROPOSTO para EXECUTANDO sem passar por VALIDADO
 - criar handoff com estado ≠ VALIDADO
-- marcar CONCLUÍDO sem retorno de Codex
+- marcar CONCLUÍDO sem retorno de agente_executor
 - reutilizar ciclo_id de ciclo anterior
 - omitir historico_estados do snapshot
 - ativar COMMITADO / VERIFICADO / DIVERGENTE sem r-git-operacional carregado

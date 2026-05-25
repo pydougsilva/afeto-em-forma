@@ -118,7 +118,7 @@ Misturar documentação com instruções.
 
 ### Motivo
 Evitar poluição semântica.
-Melhorar orquestração do Codex.
+Melhorar orquestração do agente_executor.
 
 ---
 

@@ -7,10 +7,10 @@ O [NOME DO PROJETO] utiliza o C.A.O.S como infraestrutura cognitiva operacional.
 
 Arquitetura operacional:
 
-- Claude → Orquestrador estratégico e raciocínio
+- agente_orquestrador → Orquestrador estratégico e raciocínio
 - RAG (/rag/k e /rag/r) → memória modular estruturada
 - Snapshots → memória institucional operacional persistente
-- Codex → executor técnico controlado
+- agente_executor → executor técnico controlado
 - VSCode → ambiente operacional
 - Usuário → validação e governança
 

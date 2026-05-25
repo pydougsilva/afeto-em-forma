@@ -126,7 +126,7 @@ Com apenas o núcleo, o C.A.O.S pode:
 | Capacidade | Módulo necessário |
 |---|---|
 | Matching estruturado de domínios | r-matching-conceito |
-| Handoff formal Claude→Codex | r-handoff-codex + k-sys-handoff-format |
+| Handoff formal agente_orquestrador→agente_executor | r-handoff-executor + k-sys-handoff-format |
 | Estados formais do ciclo | r-estados-ciclo |
 | Snapshots incrementais | r-snapshots-incrementais |
 | Persistência verificável (Git) | r-git-operacional + r-commit-governance |
@@ -154,7 +154,7 @@ Nível 1 — Continuidade estruturada (adicionar em projetos ativos)
   → r-hotfix-padrao (se tiver frontend)
 
 Nível 2 — Governança operacional (adicionar quando necessário)
-  → r-handoff-codex + k-sys-handoff-format
+  → r-handoff-executor + k-sys-handoff-format
   → r-staleness-detection
   → r-concurrency-guard
   → r-telemetria-cognitiva
@@ -176,7 +176,7 @@ Nível 4 — Memória semântica (adicionar com corpus suficiente)
 Módulos que NÃO devem ser incluídos no núcleo de projetos novos:
 - r-git-operacional (requer configuração de Git commit governance)
 - r-estados-ciclo (adiciona overhead antes de ser necessário)
-- r-handoff-codex (requer executor separado real)
+- r-handoff-executor (requer executor separado real)
 - Qualquer módulo de telemetria (antes de ter ciclos reais para rastrear)
 
 Estes módulos têm valor real — mas adicionados prematuramente criam sobrecarga

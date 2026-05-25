@@ -86,7 +86,7 @@ SUSPEITO quando:
 
 SUSPEITO quando:
   módulo de frontend descreve comportamento que não corresponde
-  ao que Claude observa no código atual
+  ao que agente_orquestrador observa no código atual
 ```
 
 **Consequência:** atualizar o módulo antes de usá-lo como referência para qualquer ciclo.
@@ -144,6 +144,6 @@ não um sistema de monitoramento.
 
 ## RESULTADO ESPERADO
 
-Ao final da etapa 0b, Claude deve ser capaz de dizer:
+Ao final da etapa 0b, agente_orquestrador deve ser capaz de dizer:
 "Este snapshot parece atual" ou "Este snapshot tem indicadores de staleness: [lista]"
 Nunca: silêncio sobre a questão.

@@ -1,9 +1,9 @@
-# CODEX-BOOTSTRAP
+# AGENTE-EXECUTOR-BOOTSTRAP
 versao: C.A.O.S v1.1
 
 ## OBJETIVO
 
-Inicializar o Codex dentro da arquitetura C.A.O.S.
+Inicializar o agente_executor dentro da arquitetura C.A.O.S.
 
 ---
 
@@ -21,9 +21,9 @@ Principalmente:
 
 ---
 
-## PAPEL DO CODEX
+## PAPEL DO agente_executor
 
-O Codex deve:
+O agente_executor deve:
 - executar
 - atualizar módulos
 - preservar taxonomia
@@ -45,10 +45,10 @@ O Codex deve:
 
 ## GOVERNANÇA
 
-Claude:
+agente_orquestrador:
 orquestra.
 
-Codex:
+agente_executor:
 executa.
 
 Usuário:

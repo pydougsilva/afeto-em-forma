@@ -15,8 +15,8 @@ Responde à pergunta:
 
 Replay é reconstrução assistida — não é automação.
 
-Claude reconstrói o contexto. O usuário valida a reconstrução.
-Codex executa apenas após validação humana explícita.
+agente_orquestrador reconstrói o contexto. O usuário valida a reconstrução.
+agente_executor executa apenas após validação humana explícita.
 
 O replay nunca executa sem gate humano.
 
@@ -40,9 +40,9 @@ Casos de uso:
 
 | Replay | Automação |
 |---|---|
-| Claude reconstrói com base em artefatos | sistema executa sem reconstrução |
+| agente_orquestrador reconstrói com base em artefatos | sistema executa sem reconstrução |
 | Usuário valida a reconstrução [GATE] | execução sem gate humano |
-| Codex executa a instrução validada | sistema executa diretamente |
+| agente_executor executa a instrução validada | sistema executa diretamente |
 | Novo ciclo registrado independente | histórico pode ser sobrescrito |
 | Equivalência ambiental avaliada | ambiente assumido como equivalente |
 
@@ -73,7 +73,7 @@ Replay sem commit_hash é possível mas com limitações documentadas.
 
 ## AVALIAÇÃO DE EQUIVALÊNCIA AMBIENTAL
 
-Antes de reconstruir a instrução, Claude avalia se o ambiente alvo
+Antes de reconstruir a instrução, agente_orquestrador avalia se o ambiente alvo
 é suficientemente equivalente ao ambiente original.
 
 Equivalência ambiental não exige perfeição — exige suficiência.
@@ -105,13 +105,13 @@ EQUIVALENTE:
 
 PARCIALMENTE EQUIVALENTE:
   Algumas dimensões divergem mas não impedem execução.
-  Claude documenta as divergências antes de apresentar ao usuário.
+  agente_orquestrador documenta as divergências antes de apresentar ao usuário.
   Usuário decide se prossegue com as divergências conhecidas.
 
 NÃO EQUIVALENTE:
   Uma ou mais dimensões críticas estão ausentes.
   Ex: tabela referenciada não existe, função dependente ausente.
-  Claude apresenta bloqueadores ao usuário.
+  agente_orquestrador apresenta bloqueadores ao usuário.
   Replay não deve prosseguir sem resolução dos bloqueadores.
 ```
 
@@ -120,32 +120,32 @@ NÃO EQUIVALENTE:
 ## SEQUÊNCIA COMPLETA DE REPLAY
 
 ```
-Passo 1   Pedido de replay chega a Claude
+Passo 1   Pedido de replay chega a agente_orquestrador
           → identificar: snapshot_id + commit_hash (se disponível)
           → identificar: ambiente alvo
 
-Passo 2   Claude carrega snapshot:
+Passo 2   agente_orquestrador carrega snapshot:
           → decisão original
           → riscos identificados
           → módulos usados
           → artefatos alterados no ciclo original
 
-Passo 3   Claude carrega diff do commit (se commit_hash disponível):
+Passo 3   agente_orquestrador carrega diff do commit (se commit_hash disponível):
           → o que foi realmente alterado
           → quais arquivos, quais linhas
           → confirma consistência com snapshot
 
-Passo 4   Claude avalia equivalência ambiental:
+Passo 4   agente_orquestrador avalia equivalência ambiental:
           → estado do domínio alvo
           → dependências disponíveis
           → resultado: EQUIVALENTE | PARCIALMENTE EQUIVALENTE | NÃO EQUIVALENTE
 
-Passo 5   Claude reconstrói instrução:
+Passo 5   agente_orquestrador reconstrói instrução:
           → instrução baseada em snapshot.decisao + diff (quando disponível)
           → instrução adaptada para o ambiente alvo (se necessário)
           → documenta diferenças em relação ao ciclo original
 
-Passo 6   Claude apresenta ao usuário:
+Passo 6   agente_orquestrador apresenta ao usuário:
           → contexto do ciclo original
           → instrução reconstruída
           → avaliação de equivalência
@@ -157,12 +157,12 @@ Passo 7   GATE — Usuário valida:
           → as divergências são aceitáveis?
           → aprovação explícita antes de qualquer execução
 
-Passo 8   Claude emite handoff para Codex:
+Passo 8   agente_orquestrador emite handoff para agente_executor:
           → instrução validada pelo usuário
           → snapshot_ref: novo snapshot do ciclo de replay
           → campo adicional: replay_de: [snapshot-ID original]
 
-Passo 9   Codex executa no ambiente alvo
+Passo 9   agente_executor executa no ambiente alvo
           → novo ciclo operacional independente
           → commit com [tipo](domínio) correspondente
 
@@ -193,7 +193,7 @@ Sem exceções — mesmo para ciclos considerados simples.
 - Equivalência perfeita de estado após execução
 - Que o ciclo original foi a abordagem correta para o novo contexto
 
-Claude deve explicitar essas não-garantias ao usuário em Passo 6.
+agente_orquestrador deve explicitar essas não-garantias ao usuário em Passo 6.
 O usuário decide com conhecimento dos limites — não com expectativa de reprodução exata.
 
 ---
@@ -207,10 +207,10 @@ Situação: ciclo original alterou artefatos A, B, C.
           No ambiente alvo, B não existe — apenas A e C são reproduzíveis.
 
 Comportamento:
-  Claude reconstrói instrução apenas para A e C.
+  agente_orquestrador reconstrói instrução apenas para A e C.
   Documenta explicitamente: "B não reproduzível no ambiente alvo — [motivo]"
   Usuário valida o replay parcial [GATE]
-  Codex executa apenas A e C
+  agente_executor executa apenas A e C
   Snapshot registra: replay parcial, B excluído, motivo documentado
 ```
 
@@ -288,7 +288,7 @@ Nunca:
 Todo replay executado deve:
 - partir de artefatos verificáveis (snapshot + commit quando disponível)
 - avaliar equivalência ambiental antes de reconstruir
-- ter instrução reconstruída explicitamente por Claude
+- ter instrução reconstruída explicitamente por agente_orquestrador
 - ter validação humana explícita antes da execução
 - gerar novo ciclo independente referenciado ao ciclo original
 - documentar limitações quando replay for parcial ou pré-v3.5

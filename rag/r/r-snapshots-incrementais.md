@@ -58,7 +58,7 @@ Campo obrigatório: `base_ref` — ID do snapshot base da cadeia.
    Critério prático: se mais de 5 campos mudam simultaneamente → novo base.
 4. **Cadeia de deltas ≥ 5** — para evitar cadeias longas que dificultam
    reconstituição. Ao criar o 6º delta, criar novo base consolidado.
-5. **Decisão explícita do usuário ou Claude** — quando a limpeza de histórico
+5. **Decisão explícita do usuário ou agente_orquestrador** — quando a limpeza de histórico
    for operacionalmente necessária.
 
 ### Criar snapshot INCREMENTAL quando:
@@ -108,8 +108,8 @@ artefatos_alterados:
   - [artefato 1]
   - [artefato 2]
 
-agente_orquestrador: Claude
-agente_executor: Codex
+agente_orquestrador: [identidade concreta do agente_orquestrador]
+agente_executor: [identidade concreta do agente_executor]
 
 # Campos opcionais — v3.5 Git (inativos em v3.0)
 commit_hash: null
@@ -150,8 +150,8 @@ delta:
     # apenas estados DO NOVO CICLO, não histórico completo
 
 # Rastreabilidade (obrigatório mesmo em incremental)
-agente_orquestrador: Claude
-agente_executor: Codex
+agente_orquestrador: [identidade concreta do agente_orquestrador]
+agente_executor: [identidade concreta do agente_executor]
 
 # Campos opcionais — v3.5 Git
 commit_hash: null

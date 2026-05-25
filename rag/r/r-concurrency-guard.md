@@ -36,7 +36,7 @@ Exemplo:     rag/locks/public.audit_logs.lock.yml
 dominio: public.audit_logs
 ciclo_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
 estado: EXECUTANDO
-agente_orquestrador: Claude
+agente_orquestrador: [identidade concreta do agente_orquestrador]
 timestamp_abertura: 2026-05-12T10:00:00-03:00
 sessao_id: claude-session-20260512-a1b2
 estimativa_conclusao: 2026-05-12T11:00:00-03:00   # opcional
@@ -48,7 +48,7 @@ estimativa_conclusao: 2026-05-12T11:00:00-03:00   # opcional
 
 ### Criação do lock (etapa 0a — antes de iniciar análise)
 
-Quando Claude identifica o domínio e está prestes a iniciar ciclo:
+Quando agente_orquestrador identifica o domínio e está prestes a iniciar ciclo:
 
 ```
 1. Verificar: existe rag/locks/[domínio].lock.yml ?
@@ -61,9 +61,9 @@ Quando Claude identifica o domínio e está prestes a iniciar ciclo:
 O lock é atualizado quando o estado do ciclo muda:
 
 ```yaml
-estado: PROPOSTO        # após Claude gerar instrução
+estado: PROPOSTO        # após agente_orquestrador gerar instrução
 estado: VALIDADO        # após aprovação humana
-estado: EXECUTANDO      # após handoff para Codex
+estado: EXECUTANDO      # após handoff para agente_executor
 estado: CONCLUÍDO       # antes de deletar o lock
 ```
 
@@ -86,11 +86,11 @@ Sinalizar ao usuário: "Domínio [X] tem ciclo ativo (ID: [ciclo_id], estado: EX
 Aguardar conclusão ou verificar se o ciclo foi interrompido."
 ```
 
-### Caso 2 — Lock com estado VALIDADO (handoff emitido, aguardando Codex)
+### Caso 2 — Lock com estado VALIDADO (handoff emitido, aguardando agente_executor)
 
 ```
 Ação: não iniciar novo ciclo.
-Sinalizar: "Ciclo [ciclo_id] foi validado mas Codex ainda não retornou.
+Sinalizar: "Ciclo [ciclo_id] foi validado mas agente_executor ainda não retornou.
 Verificar estado de execução antes de prosseguir."
 ```
 
@@ -163,10 +163,10 @@ Exemplo de conflito potencial:
   Ciclo A: public.pedidos (estado: EXECUTANDO)
   Ciclo B: public.itens_pedido (estado: iniciando)
   → Atenção: itens_pedido tem FK para pedidos.
-    Claude deve avaliar se a mudança em pedidos afeta itens_pedido.
+    agente_orquestrador deve avaliar se a mudança em pedidos afeta itens_pedido.
 ```
 
-Quando domínios têm FK entre si, Claude avalia manualmente se há risco de conflito.
+Quando domínios têm FK entre si, agente_orquestrador avalia manualmente se há risco de conflito.
 Não há lock automático para dependências FK — é julgamento arquitetural.
 
 ---
@@ -175,7 +175,7 @@ Não há lock automático para dependências FK — é julgamento arquitetural.
 
 Este mecanismo é:
 - um arquivo YAML por domínio
-- criado e deletado manualmente (por Claude ou Codex)
+- criado e deletado manualmente (por agente_orquestrador ou agente_executor)
 - legível por qualquer agente ou humano
 - sem banco de dados, sem servidor, sem daemon
 

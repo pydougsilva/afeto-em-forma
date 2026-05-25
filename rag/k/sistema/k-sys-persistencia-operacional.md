@@ -30,7 +30,7 @@ O C.A.O.S opera com três camadas de persistência distintas e complementares:
 │  Camada 3 — Git (v3.5)                                      │
 │  O que foi executado: evidência verificável                 │
 │  Persiste: diff real, autoria, timestamp                    │
-│  Muda quando: Codex executa instrução validada              │
+│  Muda quando: agente_executor executa instrução validada              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -77,8 +77,8 @@ Registra o que foi efetivamente alterado, quando, por quem.
 [rls](public.audit_logs): substituir policy email_admin por get_tenant_id()
 
 snapshot: audit-logs-001
-agent-executor: Codex
-agent-orchestrator: Claude
+agent-executor: [agente_executor_id]
+agent-orchestrator: [agente_orquestrador_id]
 risks-addressed: 4
 ```
 
@@ -158,21 +158,21 @@ eventos institucionais do C.A.O.S — são commits técnicos comuns.
 ## FLUXO COMPLETO COM EVIDÊNCIA OPERACIONAL
 
 ```
-Etapa 5    Claude gera instrução estruturada
+Etapa 5    agente_orquestrador gera instrução estruturada
            ↓
 Etapa 6    Usuário valida [GATE 1]
            ciclo: PROPOSTO → VALIDADO
            ↓
-Etapa 7    Claude emite handoff (estado: VALIDADO)
+Etapa 7    agente_orquestrador emite handoff (estado: VALIDADO)
            commit_type e branch_sugerido incluídos
            ciclo: VALIDADO → EXECUTANDO
            ↓
-Etapa 7a   Codex cria branch ops/ e executa instrução
+Etapa 7a   agente_executor cria branch ops/ e executa instrução
            ↓
-Etapa 7a   Codex cria commit institucional na branch ops/
+Etapa 7a   agente_executor cria commit institucional na branch ops/
            ciclo: EXECUTANDO → COMMITADO
            ↓
-Etapa 7b   Claude lê diff do commit
+Etapa 7b   agente_orquestrador lê diff do commit
            Valida: diff ↔ instrução autorizada?
            → correspondência: ciclo → VERIFICADO
            → divergência: retorna ao usuário com diff

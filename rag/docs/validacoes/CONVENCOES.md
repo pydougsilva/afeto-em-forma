@@ -87,7 +87,7 @@ Exemplos:
 
 ## MODO DE EXECUÇÃO — HANDOFFS E PROMPTS FASE 5
 
-Todo prompt ou handoff emitido para Codex deve incluir ao final:
+Todo prompt ou handoff emitido para agente_executor deve incluir ao final:
 
 ```
 ---
@@ -109,7 +109,7 @@ Usar quando: ciclo real onde o executor precisa do snapshot do domínio antes de
 **SESSÃO ATUAL**
 Continuidade explícita do contexto da sessão em andamento.
 Usar quando: teste depende de estado conversacional previamente construído
-(ex: T2.2 que segue T2.1 — Codex já conhece o handoff inválido e recebe o válido).
+(ex: T2.2 que segue T2.1 — agente_executor já conhece o handoff inválido e recebe o válido).
 
 Esta convenção é obrigatória a partir da Fase 5 para todos os prompts de teste e handoffs formais.
 

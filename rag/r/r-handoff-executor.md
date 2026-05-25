@@ -1,13 +1,13 @@
-# r-handoff-codex
+# r-handoff-executor
 versao: 2.0
 
 ## OBJETIVO
 
 Definir as regras operacionais do protocolo de handoff entre
-Claude (orquestrador) e Codex (executor) no C.A.O.S.
+agente_orquestrador (orquestrador) e agente_executor (executor) no C.A.O.S.
 
 Responde à pergunta:
-"como Claude emite e Codex recebe, valida e responde a um handoff?"
+"como agente_orquestrador emite e agente_executor recebe, valida e responde a um handoff?"
 
 Formato dos documentos: ver k-sys-handoff-format.
 
@@ -15,19 +15,19 @@ Formato dos documentos: ver k-sys-handoff-format.
 
 ## PRINCÍPIO CENTRAL
 
-O handoff é o único canal formal de comunicação entre Claude e Codex.
+O handoff é o único canal formal de comunicação entre agente_orquestrador e agente_executor.
 
-Claude não executa.
-Codex não decide arquiteturalmente.
+agente_orquestrador não executa.
+agente_executor não decide arquiteturalmente.
 A separação é absoluta e não pode ser invertida.
 
 ---
 
-## PARTE 1 — REGRAS PARA CLAUDE (emissão)
+## PARTE 1 — REGRAS PARA agente_orquestrador (emissão)
 
 ### Quando emitir handoff
 
-Claude emite handoff quando e somente quando:
+agente_orquestrador emite handoff quando e somente quando:
 - o ciclo está em estado VALIDADO (usuário aprovou)
 - a instrução está completa e sem ambiguidade
 - o snapshot de referência está identificado
@@ -48,7 +48,7 @@ Claude emite handoff quando e somente quando:
 Se qualquer verificação falhar: não emitir handoff.
 Resolver a inconsistência e apresentar ao usuário se necessário.
 
-### O que Claude não faz no handoff
+### O que agente_orquestrador não faz no handoff
 
 - Não inclui raciocínio interno ou justificativas na instrucao
 - Não inclui campos especulativos ("talvez" / "pode ser")
@@ -78,17 +78,17 @@ WHERE tablename = 'audit_logs' — resultado esperado: 2 policies."
 ### Re-emissão de handoff (retomada de ciclo)
 
 Quando ciclo está em VALIDADO e sessão foi interrompida:
-- Claude recria handoff com o mesmo ciclo_id do ciclo original
+- agente_orquestrador recria handoff com o mesmo ciclo_id do ciclo original
 - Não gera novo ciclo_id — é retomada, não novo ciclo
-- Codex usa ciclo_id para verificar idempotência
+- agente_executor usa ciclo_id para verificar idempotência
 
 ---
 
-## PARTE 2 — REGRAS PARA CODEX (recepção e validação)
+## PARTE 2 — REGRAS PARA agente_executor (recepção e validação)
 
 ### Etapa 1 — Validação obrigatória antes de executar
 
-Codex deve validar TODOS os campos obrigatórios antes de iniciar qualquer execução.
+agente_executor deve validar TODOS os campos obrigatórios antes de iniciar qualquer execução.
 
 Checklist de validação:
 
@@ -122,9 +122,9 @@ Se ciclo_id é novo:
 
 ### Etapa 3 — Execução da instrução
 
-Codex executa exatamente a instrução recebida.
+agente_executor executa exatamente a instrução recebida.
 
-O que Codex não faz durante execução:
+O que agente_executor não faz durante execução:
 - Não modifica escopo da instrução (nem reduz nem expande)
 - Não toma decisões arquiteturais não previstas na instrução
 - Não ignora etapas de validação definidas na instrução
@@ -136,7 +136,7 @@ Se a instrução for ambígua ou incompleta:
 
 ### Etapa 4 — Construção do retorno
 
-Após execução (sucesso ou falha), Codex constrói retorno estruturado.
+Após execução (sucesso ou falha), agente_executor constrói retorno estruturado.
 
 Regras do retorno:
 
@@ -144,7 +144,7 @@ Regras do retorno:
 - `estado` deve ser um de: CONCLUÍDO, FALHOU, HANDOFF_INVALIDO
 - Campos condicionais por estado devem ser preenchidos (ver k-sys-handoff-format)
 - `commit_hash`: null em modo v3.0 | hash real obrigatório em modo v3.5 (r-git-operacional)
-- Retorno vazio ou parcial é inválido — Claude deve rejeitar
+- Retorno vazio ou parcial é inválido — agente_orquestrador deve rejeitar
 
 ### Campos obrigatórios por estado de retorno
 
@@ -171,9 +171,9 @@ acao_recomendada:    obrigatório
 
 ---
 
-## PARTE 3 — REGRAS PARA CLAUDE (recepção do retorno)
+## PARTE 3 — REGRAS PARA agente_orquestrador (recepção do retorno)
 
-### O que Claude faz com cada estado de retorno
+### O que agente_orquestrador faz com cada estado de retorno
 
 **Retorno CONCLUÍDO — modo v3.0 (sem r-git-operacional):**
 1. Verificar se ciclo_id do retorno corresponde ao handoff emitido
@@ -206,13 +206,13 @@ acao_recomendada:    obrigatório
 4. Não criar novo ciclo
 
 **Retorno parcial ou corrompido (campos faltando):**
-1. Claude rejeita o retorno como inválido
-2. Solicita que Codex reenvie retorno completo
+1. agente_orquestrador rejeita o retorno como inválido
+2. Solicita que agente_executor reenvie retorno completo
 3. Não atualiza snapshot com retorno incompleto
 
-### Validação de consistência Claude
+### Validação de consistência agente_orquestrador
 
-Antes de marcar ciclo como CONCLUÍDO, Claude verifica:
+Antes de marcar ciclo como CONCLUÍDO, agente_orquestrador verifica:
 
 ```
 □ ciclo_id do retorno = ciclo_id do handoff emitido?
@@ -227,29 +227,29 @@ Se qualquer verificação falhar: não marcar CONCLUÍDO — investigar.
 
 ## PARTE 4 — TRATAMENTO DE CASOS ESPECIAIS
 
-### Caso 1 — Codex não responde (timeout operacional)
+### Caso 1 — agente_executor não responde (timeout operacional)
 
-Se Codex não retorna após período razoável:
-1. Claude não assume CONCLUÍDO nem FALHOU
-2. Claude sinaliza ao usuário: "Codex não retornou resultado para ciclo_id X"
+Se agente_executor não retorna após período razoável:
+1. agente_orquestrador não assume CONCLUÍDO nem FALHOU
+2. agente_orquestrador sinaliza ao usuário: "agente_executor não retornou resultado para ciclo_id X"
 3. Usuário decide: aguardar, verificar manualmente o estado, ou cancelar ciclo
 4. Ciclo permanece em EXECUTANDO no snapshot até retorno ou decisão humana
 
 ### Caso 2 — Dois retornos para o mesmo ciclo_id
 
-Se Claude recebe dois retornos com o mesmo ciclo_id:
+Se agente_orquestrador recebe dois retornos com o mesmo ciclo_id:
 1. Primeiro retorno válido é aceito
 2. Segundo retorno é descartado (idempotência)
 3. Se os dois retornos divergem: sinalizar ao usuário antes de qualquer ação
 
 ### Caso 3 — Instrução que ultrapassa escopo do domínio
 
-Se durante execução Codex identifica que a instrução afetaria domínios
+Se durante execução agente_executor identifica que a instrução afetaria domínios
 além do especificado em `dominio`:
 1. Não executar a parte fora do escopo
 2. Retornar FALHOU com erro_descricao: "instrução ultrapassa escopo do domínio"
 3. Listar em artefatos_afetados os domínios que seriam impactados
-4. Claude reavalia e, se necessário, cria ciclos separados por domínio
+4. agente_orquestrador reavalia e, se necessário, cria ciclos separados por domínio
 
 ---
 
@@ -257,16 +257,16 @@ além do especificado em `dominio`:
 
 | Evento | Transição de estado |
 |---|---|
-| Claude emite handoff válido | VALIDADO → EXECUTANDO |
-| Codex retorna CONCLUÍDO (modo v3.0) | EXECUTANDO → CONCLUÍDO |
-| Codex retorna CONCLUÍDO com commit_hash (modo v3.5) | EXECUTANDO → COMMITADO |
-| Claude valida diff sem divergência (modo v3.5) | COMMITADO → VERIFICADO |
-| Claude detecta divergência no diff (modo v3.5) | COMMITADO → DIVERGENTE |
-| Claude confirma VERIFICADO (modo v3.5) | VERIFICADO → CONCLUÍDO |
-| Codex retorna FALHOU | EXECUTANDO → FALHOU |
-| Claude retorna ciclo de FALHOU | FALHOU → ANALISADO |
-| Codex retorna HANDOFF_INVALIDO | ciclo permanece em VALIDADO |
-| Claude corrige e re-emite | VALIDADO → EXECUTANDO (nova tentativa) |
+| agente_orquestrador emite handoff válido | VALIDADO → EXECUTANDO |
+| agente_executor retorna CONCLUÍDO (modo v3.0) | EXECUTANDO → CONCLUÍDO |
+| agente_executor retorna CONCLUÍDO com commit_hash (modo v3.5) | EXECUTANDO → COMMITADO |
+| agente_orquestrador valida diff sem divergência (modo v3.5) | COMMITADO → VERIFICADO |
+| agente_orquestrador detecta divergência no diff (modo v3.5) | COMMITADO → DIVERGENTE |
+| agente_orquestrador confirma VERIFICADO (modo v3.5) | VERIFICADO → CONCLUÍDO |
+| agente_executor retorna FALHOU | EXECUTANDO → FALHOU |
+| agente_orquestrador retorna ciclo de FALHOU | FALHOU → ANALISADO |
+| agente_executor retorna HANDOFF_INVALIDO | ciclo permanece em VALIDADO |
+| agente_orquestrador corrige e re-emite | VALIDADO → EXECUTANDO (nova tentativa) |
 
 ---
 
@@ -278,16 +278,16 @@ Estes campos têm comportamento diferente em modo v3.0 e modo v3.5.
 
 | Campo | Comportamento |
 |---|---|
-| `commit_type` no handoff | null — Codex ignora |
-| `branch_sugerido` no handoff | null — Codex ignora |
-| `commit_hash` no retorno | null — Claude ignora |
+| `commit_type` no handoff | null — agente_executor ignora |
+| `branch_sugerido` no handoff | null — agente_executor ignora |
+| `commit_hash` no retorno | null — agente_orquestrador ignora |
 
 ### Modo v3.5 (com r-git-operacional carregado)
 
 | Campo | Comportamento |
 |---|---|
-| `commit_type` no handoff | obrigatório — Codex cria commit `[tipo](domínio)` |
-| `branch_sugerido` no handoff | obrigatório — Codex cria branch ops/ antes de executar |
+| `commit_type` no handoff | obrigatório — agente_executor cria commit `[tipo](domínio)` |
+| `branch_sugerido` no handoff | obrigatório — agente_executor cria branch ops/ antes de executar |
 | `commit_hash` no retorno | obrigatório — hash real do commit criado |
 
 Violações em modo v3.5:
@@ -295,21 +295,21 @@ Violações em modo v3.5:
 ```
 commit_type = null com r-git-operacional ativo → HANDOFF_INVALIDO
 branch_sugerido = null com r-git-operacional ativo → HANDOFF_INVALIDO
-commit_hash ausente no retorno em v3.5 → retorno inválido → Claude investiga
+commit_hash ausente no retorno em v3.5 → retorno inválido → agente_orquestrador investiga
 ```
 
 ---
 
 ## PROIBIÇÕES
 
-Claude nunca:
+agente_orquestrador nunca:
 - Emite handoff com estado_atual ≠ VALIDADO
 - Emite handoff com instrução vazia ou condicional
 - Altera handoff após emissão sem novo ciclo
-- Marca CONCLUÍDO sem retorno de Codex
+- Marca CONCLUÍDO sem retorno de agente_executor
 - Aceita retorno parcial como válido
 
-Codex nunca:
+agente_executor nunca:
 - Executa handoff sem validar todos os campos obrigatórios
 - Toma decisões arquiteturais não previstas na instrução
 - Modifica domínios fora do escopo definido em `dominio`
@@ -321,8 +321,8 @@ Codex nunca:
 ## RESULTADO ESPERADO
 
 O protocolo de handoff deve garantir que:
-- toda execução de Codex tem origem em instrução validada
+- toda execução de agente_executor tem origem em instrução validada
 - todo ciclo tem estado rastreável antes e depois do handoff
 - falhas são documentadas com contexto suficiente para retomada
 - retomada de ciclos interrompidos é possível sem perda de estado
-- a separação Claude/Codex é verificável e auditável
+- a separação agente_orquestrador/agente_executor é verificável e auditável

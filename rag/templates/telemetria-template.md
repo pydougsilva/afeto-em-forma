@@ -1,7 +1,7 @@
 ---
 data: YYYY-MM-DD
 sessao_id: [identificador curto — ex: hotfix-auth-001]
-agente: Claude | Codex | outro
+agente: agente_orquestrador | agente_executor | outro
 papel: orquestrador | executor | auditor | novo-agente
 versao_protocolo: "3.9"
 ---

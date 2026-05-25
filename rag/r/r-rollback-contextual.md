@@ -78,8 +78,8 @@ Os dois rollbacks devem ocorrer no mesmo ciclo operacional.
 | Rollback institucional sem Git revert | snapshot reporta REVERTIDO, sistema ainda tem as alterações ativas |
 | Ambos executados no mesmo ciclo | integridade preservada — causalidade técnica e institucional alinhadas |
 
-Codex executa o Git revert.
-Claude executa o rollback institucional.
+agente_executor executa o Git revert.
+agente_orquestrador executa o rollback institucional.
 Usuário autoriza ambos.
 
 ---
@@ -87,12 +87,12 @@ Usuário autoriza ambos.
 ## SEQUÊNCIA COMPLETA DE ROLLBACK
 
 ```
-Passo 1   Pedido de rollback chega a Claude
+Passo 1   Pedido de rollback chega a agente_orquestrador
           → identificar: commit_hash do ciclo a reverter
           → identificar: snapshot_ref do ciclo a reverter
           → identificar: artefatos que serão desfeitos
 
-Passo 2   Claude prepara apresentação dual:
+Passo 2   agente_orquestrador prepara apresentação dual:
 
           IMPACTO TÉCNICO:
           "Reverter commit [hash] desfará as seguintes alterações:
@@ -106,34 +106,34 @@ Passo 3   GATE 1 — Usuário aprova impacto técnico + institucional
           → se rejeitado: rollback cancelado, ciclo permanece CONCLUÍDO
           → se aprovado: prosseguir
 
-Passo 4   Codex cria branch de reversão:
+Passo 4   agente_executor cria branch de reversão:
           ops/revert-[domínio-abreviado]-[YYYYMMDD]
 
-Passo 5   Codex executa: git revert <commit_hash>
+Passo 5   agente_executor executa: git revert <commit_hash>
           → commit criado com formato institucional:
             [revert](domínio): reverter [descrição do ciclo original]
             snapshot: [novo-snapshot-revert-ID]
-            agent-executor: Codex
-            agent-orchestrator: Claude
+            agent-executor: [agente_executor_id]
+            agent-orchestrator: [agente_orquestrador_id]
             risks-addressed: 0
 
-Passo 6   Claude atualiza snapshot do ciclo revertido:
+Passo 6   agente_orquestrador atualiza snapshot do ciclo revertido:
           → estado_atual: REVERTIDO
           → commit_revert_hash: [hash do commit de revert]
           → registrar delta incremental com motivo da reversão
 
-Passo 7   Claude apresenta o resultado ao usuário:
+Passo 7   agente_orquestrador apresenta o resultado ao usuário:
           → diff do commit de revert
           → snapshot atualizado com REVERTIDO
           → novo snapshot incremental criado
 
 Passo 8   GATE 2 — Usuário autoriza merge da branch de reversão → main
           → se rejeitado: revert fica na branch, não em main ainda
-          → se aprovado: Codex faz merge e deleta branch
+          → se aprovado: agente_executor faz merge e deleta branch
 
-Passo 9   Codex: merge ops/revert-[...] → main
-          Codex: deleta branch de reversão
-          Claude: registra snapshot como concluído
+Passo 9   agente_executor: merge ops/revert-[...] → main
+          agente_executor: deleta branch de reversão
+          agente_orquestrador: registra snapshot como concluído
 ```
 
 **Dois gates humanos obrigatórios.**
@@ -182,7 +182,7 @@ Abordagem correta:
 
 Rollback parcial não é tecnicamente um `git revert`.
 É um novo ciclo de correção com escopo restrito.
-Claude deve apresentar essa distinção ao usuário antes de prosseguir.
+agente_orquestrador deve apresentar essa distinção ao usuário antes de prosseguir.
 
 ---
 
@@ -200,15 +200,15 @@ Não há commit para reverter.
 Abordagem para ciclos pré-v3.5:
 
 ```
-1. Claude identifica: não há evidência Git rastreável para este ciclo
-2. Claude apresenta ao usuário:
+1. agente_orquestrador identifica: não há evidência Git rastreável para este ciclo
+2. agente_orquestrador apresenta ao usuário:
    "Este ciclo (v3.0 pré-Git) não possui commit verificável.
     Rollback técnico não é possível via git revert.
     Reversão deve ser feita manualmente."
-3. Claude propõe: novo ciclo de correção manual
+3. agente_orquestrador propõe: novo ciclo de correção manual
 4. Usuário valida a abordagem [GATE]
 5. Novo handoff emitido com instrução de reversão manual
-6. Codex executa, cria commit institucional do ciclo de correção
+6. agente_executor executa, cria commit institucional do ciclo de correção
 7. Snapshot original: estado_atual = REVERTIDO (rollback institucional feito)
 8. Novo snapshot documenta a reversão
 ```
