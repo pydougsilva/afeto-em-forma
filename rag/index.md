@@ -102,6 +102,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | Restauracao de orquestrador | r/r-restauracao-orquestrador | r/r-estados-ciclo | r/r-telemetria-cognitiva |
 | Primeiro snapshot de domínio | r/r-recuperacao-contextual | k/sistema/k-sys-registry-dominios | — |
 | Simplificação / anti-burocracia | r/r-anti-burocracia | r/r-module-pruning | — |
+| Governança de repositórios | k/sistema/k-sys-governanca-repositorios | — | — |
 
 ---
 
@@ -177,6 +178,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 | k-sys-governanca-git | 1.0 | branches, commits e convenções operacionais Git |
 | k-sys-handoff-institucional | 1.0 | protocolo de entrada para novo agente executor |
 | k-sys-nucleo-minimo | 1.0 | núcleo mínimo replicável do C.A.O.S |
+| k-sys-governanca-repositorios | 1.0 | separação institucional produto ↔ caos-core |
 
 ---
 
