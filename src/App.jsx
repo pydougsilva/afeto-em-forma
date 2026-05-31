@@ -846,6 +846,14 @@ function AfetoEmFormaApp() {
   const [cancelandoId,  setCancelandoId]  = useState(null);
   const [pagandoId,     setPagandoId]     = useState(null);
   const [newFornada,   setNewFornada]   = useState({ data:"", obs:"", cap_pao:5, cap_biscoito:6 });
+  // Sprint D — pedido manual (guest order)
+  const [novoGuestPedido, setNovoGuestPedido] = useState(false);
+  const [guestForm, setGuestForm] = useState({ nome:"", telefone:"", produtoId:"", fornada_id:"", quantidade:1 });
+  const [guestErr,  setGuestErr]  = useState("");
+  const [guestSaving, setGuestSaving] = useState(false);
+  // Sprint D — Meus Pedidos (cliente logado)
+  const [meusPedidos,     setMeusPedidos]     = useState([]);
+  const [loadMeusPedidos, setLoadMeusPedidos] = useState(false);
 
   /* ─── estado modal de produto (admin) ─── */
   const PROD_BLANK = { id:null, nome:"", descricao:"", preco:"", categoria:"Bolo", emoji:"📦", ativo:true };
@@ -998,6 +1006,55 @@ function AfetoEmFormaApp() {
     } finally { setCancelandoId(null); }
   }, [fetchPedidos]);
 
+  // Sprint D — criar pedido manual sem conta de cliente
+  const criarPedidoManual = useCallback(async () => {
+    setGuestErr("");
+    if (!guestForm.nome.trim()) { setGuestErr("Nome do cliente é obrigatório."); return; }
+    const prod = produtos.find(p => p.id === guestForm.produtoId);
+    if (!prod) { setGuestErr("Selecione um produto."); return; }
+    setGuestSaving(true);
+    try {
+      const tenantId  = profile?.tenant_id;
+      const precoUnit = extrairPreco(prod.preco);
+      const { data: pedido, error: pedidoErr } = await supabase.from("pedidos").insert({
+        tenant_id:        tenantId,
+        user_id:          null,
+        nome_cliente:     guestForm.nome.trim(),
+        telefone_cliente: guestForm.telefone.trim() || null,
+        fornada_id:       guestForm.fornada_id || null,
+        status:           "pendente",
+        valor_total:      parseInt(guestForm.quantidade) * precoUnit || null,
+      }).select("id").single();
+      if (pedidoErr) throw pedidoErr;
+      const { error: itemErr } = await supabase.from("itens_pedido").insert({
+        pedido_id:      pedido.id,
+        tenant_id:      tenantId,
+        produto:        prod.categoria,
+        nome_produto:   prod.n,
+        quantidade:     parseInt(guestForm.quantidade),
+        preco_unitario: precoUnit || null,
+      });
+      if (itemErr) throw itemErr;
+      setNovoGuestPedido(false);
+      setGuestForm({ nome:"", telefone:"", produtoId:"", fornada_id:"", quantidade:1 });
+      await fetchPedidos();
+    } catch(e) { setGuestErr(e.message); }
+    finally    { setGuestSaving(false); }
+  }, [guestForm, produtos, profile, fetchPedidos]);
+
+  // Sprint D — histórico de pedidos do cliente logado
+  const fetchMeusPedidos = useCallback(async () => {
+    if (!session?.user?.id) return;
+    setLoadMeusPedidos(true);
+    const { data, error } = await supabase.from("pedidos")
+      .select("id,status,valor_total,created_at,pago,fornadas(data),itens_pedido(nome_produto,quantidade)")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (!error && data) setMeusPedidos(data);
+    setLoadMeusPedidos(false);
+  }, [session?.user?.id]);
+
   const togglePago = useCallback(async (pedidoId, pagoAtual) => {
     setPagandoId(pedidoId);
     try {
@@ -1030,6 +1087,7 @@ function AfetoEmFormaApp() {
   useEffect(() => { if (isAdminForCurrentTenant && adminTab === "pedidos")  fetchPedidos();                        }, [isAdminForCurrentTenant, adminTab, fetchPedidos]);
   useEffect(() => { if (isAdminForCurrentTenant && adminTab === "catalogo") fetchProdutos({ apenasAtivos: false }); }, [isAdminForCurrentTenant, adminTab, fetchProdutos]);
   useEffect(() => { if (isPlatformAdmin && adminTab === "plataforma") fetchPlatformTenants();       }, [isPlatformAdmin, adminTab, fetchPlatformTenants]);
+  useEffect(() => { if (isLoggedIn) fetchMeusPedidos(); }, [isLoggedIn, fetchMeusPedidos]);
 
   /* ═══════════════════════════════════════════════════════════════
      RELATÓRIOS — Sprint 2
@@ -1594,6 +1652,35 @@ function AfetoEmFormaApp() {
           })}
         </>)}
 
+        {/* ══ MEUS PEDIDOS — Sprint D ══ */}
+        {isLoggedIn && !isAdminForCurrentTenant && (
+          <div className="sec" style={{ marginTop:8 }}>
+            <div className="sec-t">📦 Meus Pedidos</div>
+            {loadMeusPedidos && <div style={{ textAlign:"center", padding:16, color:"var(--mu)", fontSize:".82rem" }}><span className="spin">🔥</span> Carregando...</div>}
+            {!loadMeusPedidos && meusPedidos.length === 0 && (
+              <div style={{ textAlign:"center", color:"var(--mu)", padding:"24px 0", fontSize:".82rem" }}>Você ainda não tem pedidos.</div>
+            )}
+            {meusPedidos.map(p => {
+              const dtLabel = p.fornadas?.data
+                ? new Date(p.fornadas.data+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})
+                : "—";
+              const itens = (p.itens_pedido ?? []).map(i => `${i.quantidade}× ${i.nome_produto}`).join(", ");
+              return (
+                <div key={p.id} className="porder" style={{ margin:"6px 0" }}>
+                  <div className="porder-info">
+                    <div className="porder-meta" style={{ fontSize:".8rem" }}>{itens || "sem itens"} · 📅 {dtLabel}</div>
+                    {p.valor_total && <div style={{ fontSize:".7rem", color:"var(--mu)", marginTop:2 }}>R$ {Number(p.valor_total).toFixed(2)}</div>}
+                  </div>
+                  <span style={{ fontSize:".65rem", borderRadius:6, padding:"3px 9px", fontWeight:600, color:"#fff", flexShrink:0,
+                    background: p.status==="confirmado" ? "var(--green)" : p.status==="entregue" ? "#5A7A3A" : p.status==="cancelado" ? "#8A8A8A" : "var(--sc)" }}>
+                    {p.status==="confirmado" ? "✓ Em Produção" : p.status==="entregue" ? "✓ Entregue" : p.status==="cancelado" ? "✕ Cancelado" : "⏳ Pendente"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <footer>
           <div className="ft-logo">Afeto em Forma</div>
           <div className="ft-txt">São Sebastião, SP<br />Cuidado em cada pedaço.</div>
@@ -1999,10 +2086,49 @@ function AfetoEmFormaApp() {
               <div>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                   <span style={{ fontSize:".8rem", color:"var(--mu)" }}>{pedidosReais.length} pedido(s)</span>
-                  <button className="adm-refresh" onClick={fetchPedidos} disabled={loadPedidos}>
-                    {loadPedidos ? <><span className="spin">⏳</span> Carregando...</> : "↻ Atualizar"}
-                  </button>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => { setNovoGuestPedido(v => !v); setGuestErr(""); }}
+                      style={{ background:"var(--pr)", color:"#fff", border:"none", borderRadius:8, padding:"5px 12px", fontSize:".72rem", fontWeight:600, cursor:"pointer", fontFamily:"'Poppins',sans-serif" }}>
+                      {novoGuestPedido ? "✕ Fechar" : "+ Pedido Manual"}
+                    </button>
+                    <button className="adm-refresh" onClick={fetchPedidos} disabled={loadPedidos}>
+                      {loadPedidos ? <><span className="spin">⏳</span> Carregando...</> : "↻ Atualizar"}
+                    </button>
+                  </div>
                 </div>
+                {novoGuestPedido && (
+                  <div style={{ background:"var(--srf)", border:"1px solid var(--bdl)", borderRadius:10, padding:14, marginBottom:14 }}>
+                    <div style={{ fontWeight:600, marginBottom:8, fontSize:".8rem", color:"var(--pr)" }}>Novo pedido — cliente sem cadastro</div>
+                    <input placeholder="Nome do cliente *" value={guestForm.nome}
+                           onChange={e => setGuestForm(f => ({...f, nome: e.target.value}))}
+                           style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
+                    <input placeholder="Telefone (opcional)" value={guestForm.telefone}
+                           onChange={e => setGuestForm(f => ({...f, telefone: e.target.value}))}
+                           style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
+                    <select value={guestForm.produtoId}
+                            onChange={e => setGuestForm(f => ({...f, produtoId: e.target.value}))}
+                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }}>
+                      <option value="">Selecione um produto *</option>
+                      {produtos.filter(p => p.ativo).map(p =>
+                        <option key={p.id} value={p.id}>{p.n} — R$ {p.preco}</option>
+                      )}
+                    </select>
+                    <select value={guestForm.fornada_id}
+                            onChange={e => setGuestForm(f => ({...f, fornada_id: e.target.value}))}
+                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }}>
+                      <option value="">Fornada (opcional)</option>
+                      {fornadas.map(fn => <option key={fn.id} value={fn.id}>{fn.label || fn.data}</option>)}
+                    </select>
+                    <input type="number" min="1" placeholder="Quantidade" value={guestForm.quantidade}
+                           onChange={e => setGuestForm(f => ({...f, quantidade: e.target.value}))}
+                           style={{ width:"100%", boxSizing:"border-box", marginBottom:8, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
+                    {guestErr && <div style={{ color:"#C03030", fontSize:".75rem", marginBottom:6 }}>{guestErr}</div>}
+                    <button onClick={criarPedidoManual} disabled={guestSaving}
+                      style={{ background:"var(--pr)", color:"#fff", border:"none", borderRadius:8, padding:"7px 18px", fontSize:".8rem", fontWeight:600, cursor:guestSaving?"not-allowed":"pointer", opacity:guestSaving?.7:1, fontFamily:"'Poppins',sans-serif" }}>
+                      {guestSaving ? <><span className="spin">⏳</span> Salvando...</> : "✓ Criar Pedido"}
+                    </button>
+                  </div>
+                )}
                 {loadPedidos && <div style={{ textAlign:"center", padding:"24px", color:"var(--mu)" }}><span className="spin">🔥</span> Buscando...</div>}
                 {!loadPedidos && pedidosReais.length === 0 && <div style={{ textAlign:"center", color:"var(--mu)", padding:"32px" }}>Nenhum pedido ainda.</div>}
                 {pedidosReais.map(pedido => {
@@ -2021,7 +2147,9 @@ function AfetoEmFormaApp() {
                         <div className="porder-nm">
                           {cliente?.nome
                             ? <>{cliente.nome}{cliente.telefone && <span style={{fontWeight:400,color:"var(--mu)",marginLeft:6}}>· {cliente.telefone}</span>}</>
-                            : <span style={{color:"var(--mum)",fontStyle:"italic"}}>Cliente não identificado</span>}
+                            : pedido.nome_cliente
+                            ? <>{pedido.nome_cliente}{pedido.telefone_cliente && <span style={{fontWeight:400,color:"var(--mu)",marginLeft:6}}>· {pedido.telefone_cliente}</span>}</>
+                            : <span style={{color:"var(--mum)",fontStyle:"italic"}}>Pedido manual s/ cadastro</span>}
                         </div>
                         <div className="porder-meta">
                           🛒 {itemDesc || "sem itens"} · 📅 {dtExib}{pedido.valor_total ? ` · R$ ${Number(pedido.valor_total).toFixed(2)}` : ""}
