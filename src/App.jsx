@@ -1009,7 +1009,8 @@ function AfetoEmFormaApp() {
   // Sprint D — criar pedido manual sem conta de cliente
   const criarPedidoManual = useCallback(async () => {
     setGuestErr("");
-    if (!guestForm.nome.trim()) { setGuestErr("Nome do cliente é obrigatório."); return; }
+    if (!guestForm.nome.trim())     { setGuestErr("Nome do cliente é obrigatório."); return; }
+    if (!guestForm.telefone.trim()) { setGuestErr("Telefone é obrigatório."); return; }
     const prod = produtos.find(p => p.id === guestForm.produtoId);
     if (!prod) { setGuestErr("Selecione um produto."); return; }
     setGuestSaving(true);
@@ -1020,7 +1021,7 @@ function AfetoEmFormaApp() {
         tenant_id:        tenantId,
         user_id:          null,
         nome_cliente:     guestForm.nome.trim(),
-        telefone_cliente: guestForm.telefone.trim() || null,
+        telefone_cliente: guestForm.telefone.trim(),
         fornada_id:       guestForm.fornada_id || null,
         status:           "pendente",
         valor_total:      parseInt(guestForm.quantidade) * precoUnit || null,
@@ -1030,7 +1031,7 @@ function AfetoEmFormaApp() {
         pedido_id:      pedido.id,
         tenant_id:      tenantId,
         produto:        prod.categoria,
-        nome_produto:   prod.n,
+        nome_produto:   prod.nome,
         quantidade:     parseInt(guestForm.quantidade),
         preco_unitario: precoUnit || null,
       });
@@ -2102,7 +2103,7 @@ function AfetoEmFormaApp() {
                     <input placeholder="Nome do cliente *" value={guestForm.nome}
                            onChange={e => setGuestForm(f => ({...f, nome: e.target.value}))}
                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
-                    <input placeholder="Telefone (opcional)" value={guestForm.telefone}
+                    <input placeholder="Telefone *" value={guestForm.telefone}
                            onChange={e => setGuestForm(f => ({...f, telefone: e.target.value}))}
                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
                     <select value={guestForm.produtoId}
@@ -2110,7 +2111,7 @@ function AfetoEmFormaApp() {
                             style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }}>
                       <option value="">Selecione um produto *</option>
                       {produtos.filter(p => p.ativo).map(p =>
-                        <option key={p.id} value={p.id}>{p.n} — R$ {p.preco}</option>
+                        <option key={p.id} value={p.id}>{p.nome} — R$ {p.preco}</option>
                       )}
                     </select>
                     <select value={guestForm.fornada_id}
