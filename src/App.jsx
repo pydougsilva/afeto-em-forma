@@ -2103,7 +2103,7 @@ function AfetoEmFormaApp() {
                     <input placeholder="Nome do cliente *" value={guestForm.nome}
                            onChange={e => setGuestForm(f => ({...f, nome: e.target.value}))}
                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
-                    <input placeholder="Telefone (opcional)" value={guestForm.telefone}
+                    <input placeholder="Telefone *" value={guestForm.telefone}
                            onChange={e => setGuestForm(f => ({...f, telefone: e.target.value}))}
                            style={{ width:"100%", boxSizing:"border-box", marginBottom:6, padding:"7px 10px", borderRadius:7, border:"1px solid var(--bd)", fontFamily:"'Poppins',sans-serif", fontSize:".8rem" }} />
                     <select value={guestForm.produtoId}
