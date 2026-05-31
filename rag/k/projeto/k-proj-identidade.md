@@ -1,5 +1,5 @@
 # k-proj-identidade
-versao: 5.4
+versao: 5.5
 
 ## NOME
 
@@ -99,11 +99,11 @@ Relatórios:
 ## STATUS
 
 Versão:
-5.4
+5.5
 
 Estado atual:
 single-tenant com infraestrutura multi-tenant implementada.
-Produto em Fase 3 (pendente). C.A.O.S em Fase 5 (Sprint 5A/5B concluídas).
+Produto em Fase 3 (pendente). C.A.O.S em Fase 5 — v5.0 completo em ambos os repos.
 
 ---
 
@@ -150,7 +150,7 @@ Frontend: contexto operacional autenticado é tenant-bound (princípio implement
 
 ## C.A.O.S — ESTADO ATUAL
 
-Versão: 5.0 (Sprint 5A/5B + ciclos T4.1, T6.1a, T-MT.1a/1b concluídos)
+Versão: 5.0 completo (Sprint 5A/5B + hardening-legado-caos-core 2026-05-31)
 
 | Fase C.A.O.S | Status |
 |---|---|
@@ -159,12 +159,17 @@ Versão: 5.0 (Sprint 5A/5B + ciclos T4.1, T6.1a, T-MT.1a/1b concluídos)
 | v3.9 — hardening institucional | concluído |
 | v4.0 — replicabilidade institucional | concluído |
 | v5.0 — continuidade cognitiva (5A/5B) | concluído |
+| v5.0 — hardening-legado caos-core | **concluído (2026-05-31)** |
 | v5.0 — Sprint 5C (Registry v2.0) | pendente — após 30+ ciclos reais |
+| v5.1 — limpeza institucional | **concluído (2026-05-31)** |
+| v5.3 — Bootstrap Institucional Verificável | planejado |
+| v6.0 — Indexação Relacional | proposta formalizada |
 | v5.5 — memória semântica SBERT | planejado |
 
 Cobertura de snapshots: 10 domínios (9 banco + 1 frontend)
 Nível de continuidade: Pleno
-Sprint 5C: 4/30 ciclos reais acumulados
+Sprint 5C: 12/30 ciclos reais acumulados
+caos-core: working tree limpo — v5.0 integralmente commitado
 
 ## MARCO DA FASE 5
 
