@@ -1,0 +1,92 @@
+# resumption-index — Afeto em Forma
+# versao: 1.0
+# data: 2026-05-31
+# tipo: grafo_navegacao / camada_derivada
+# fonte: derivado de telemetria operacional — não é source of truth primário
+# fallback: se entrada ausente → r-recuperacao-contextual + index.md (comportamento histórico)
+
+dominios:
+
+  - id: frontend/App.jsx
+    familia: frontend
+    ultimo_ciclo_validado: ciclo-fix-sprint-d-20260531
+    T_ret_minutos: 8
+    caminho_minimo:
+      - AGENTS.md
+      - rag/index.md
+      - r/r-hotfix-padrao
+      - k/frontend/k-fe-app-estrutura
+    snapshot_ref: telemetria-20260531-fix-sprint-d
+    confianca: alta
+    notas: >
+      App.jsx ~2311 linhas. Sprint D adicionou guest orders + Meus Pedidos.
+      Fix corrigiu p.n->p.nome e telefone obrigatório no pedido manual.
+      Checar k-fe-app-estrutura (pode estar desatualizado: referencia 2179 linhas).
+
+  - id: public.pedidos
+    familia: banco/operacional
+    ultimo_ciclo_validado: ciclo-sprint-d-20260531
+    T_ret_minutos: 6
+    caminho_minimo:
+      - AGENTS.md
+      - rag/index.md
+      - r/r-rls-padrao
+      - k/banco/k-db-tabelas-core
+    snapshot_ref: telemetria-20260531-sprint-d
+    confianca: alta
+    notas: >
+      Schema suporta guest orders: user_id nullable, nome_cliente, telefone_cliente.
+      tenant_id vem de profile?.tenant_id (não de activeTenant).
+      Pré-verificação: constraint produtos_nome_categoria_unique (pode não ter tenant_id).
+
+  - id: public.tenants
+    familia: banco/plataforma
+    ultimo_ciclo_validado: ciclo-T-MT.1a-20260515
+    T_ret_minutos: null
+    caminho_minimo:
+      - AGENTS.md
+      - rag/index.md
+      - r/r-rls-padrao
+      - k/banco/k-db-funcoes
+    snapshot_ref: telemetria-20260515-T-MT.1a-tenants
+    confianca: média
+    notas: >
+      fn_provision_tenant + fn_handle_new_user v2 deployadas e funcionais.
+      slug routing ativado via vercel.json. White-label ativo (T-MT.1b).
+      Onboarding completo pendente — depende de SMTP real.
+
+  - id: public.audit_logs
+    familia: banco/segurança
+    ultimo_ciclo_validado: ciclo-hotfix-rls-20260509
+    T_ret_minutos: null
+    caminho_minimo:
+      - AGENTS.md
+      - rag/index.md
+      - r/r-rls-padrao
+      - k/banco/k-db-funcoes
+    snapshot_ref: audit-logs-001
+    confianca: média
+    notas: >
+      Primeiro ciclo real do C.A.O.S (2026-05-09). Referência histórica.
+      Policies: audit_logs_select_tenant_admin + audit_logs_platform_admin.
+
+  - id: public.profiles
+    familia: banco/auth
+    ultimo_ciclo_validado: ciclo-T6.1a-profiles-20260515
+    T_ret_minutos: null
+    caminho_minimo:
+      - AGENTS.md
+      - rag/index.md
+      - r/r-rls-padrao
+      - k/banco/k-db-tabelas-core
+    snapshot_ref: telemetria-20260515-T6.1a-profiles
+    confianca: média
+    notas: >
+      profiles.id = auth.users.id (não é coluna separada).
+      join usa profiles!user_id(nome,telefone) — não profiles.user_id.
+      fn_custom_access_token_hook injeta role e tenant_id no JWT.
+
+# ── DOMÍNIOS SEM ENTRADA (não operados com ciclo validado nesta instância) ──
+# public.fornadas     → carregar via index.md tarefa "Multi-tenant"
+# public.produtos     → carregar via index.md tarefa "Catálogo"
+# public.itens_pedido → sempre co-operado com public.pedidos
