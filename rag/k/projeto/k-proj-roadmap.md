@@ -131,8 +131,12 @@ Constraints compostas tenant-aware.
 ## N2
 Refatoração completa de joins antigos.
 
-## N3
-Auditoria final de policies anon.
+## N3 — AUDITADO 2026-06-03
+Policies anon auditadas. Encontrado: fornadas_select_anon e produtos_select_anon
+expõem dados de todos os tenants para usuários anon sem filtro de tenant_id.
+Decisão: aceitável para piloto single-tenant atual (dado exposto é cardápio público).
+Risco real ao lançar com múltiplos tenants ativos — revisar antes de Sprint E go-live.
+Solução futura: isolar anon por tenant via PostgREST header ou view segura por tenant.
 
 ## N4
 Validação dupla completa de vagas.
