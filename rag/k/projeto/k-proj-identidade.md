@@ -1,5 +1,5 @@
 # k-proj-identidade
-versao: 5.5
+versao: 5.6
 
 ## NOME
 
@@ -103,7 +103,7 @@ Versão:
 
 Estado atual:
 single-tenant com infraestrutura multi-tenant implementada.
-Produto em Fase 3 (pendente). C.A.O.S em Fase 5 — v5.0 completo em ambos os repos.
+Produto em Fase 3 (Sprint D concluída, Sprint E pendente). C.A.O.S em Fase 5 — v5.0 completo.
 
 ---
 
@@ -132,6 +132,10 @@ ITENS CONCLUÍDOS (verificados empiricamente):
 - addFornada com tenant_id — resolvido ✓
 - botão confirmar pedido — JÁ EXISTIA (HOTFIX anterior) ✓
 - editar perfil oculto em tenant alheio ✓
+- guest orders (pedido manual admin) + Meus Pedidos (cliente logado) ✓ Sprint D
+- fix display nome_cliente/telefone_cliente + telefone obrigatório no pedido manual ✓ fix Sprint D
+- constraint produtos_nome_categoria_unique — não existe, sem risco ✓ verificado 2026-06-03
+- vagas_fornada view — SECURITY INVOKER, seguro ✓ verificado 2026-06-03
 
 PENDENTES (Fase 3):
 - signUp de clientes deve passar tenant_id — depende de SMTP configurado
@@ -139,9 +143,10 @@ PENDENTES (Fase 3):
 - confirmação do fluxo completo com clientes reais
 
 VERIFICAR ANTES DE MULTI-TENANT COM CLIENTES REAIS:
-- constraint produtos_nome_categoria_unique: verificar se inclui tenant_id
-- vagas_fornada view: verificar security_invoker
-- submitPedido: tenant_id vem de profile, não de activeTenant (coerência)
+- signUp de clientes: tenant_id passado corretamente — verificar em produção com SMTP real
+- fornadas_select_anon + produtos_select_anon: expõem dados de todos os tenants para anon
+  sem filtro de tenant_id (ver H3 — auditado 2026-06-03; aceitável no piloto single-tenant)
+- submitPedido não existe — função real é handleCheckout (L1257 App.jsx) ✓ já documentado
 
 NOTA: infraestrutura banco/auth/JWT/RLS correta para multi-tenant.
 Frontend: contexto operacional autenticado é tenant-bound (princípio implementado).
@@ -162,13 +167,15 @@ Versão: 5.0 completo (Sprint 5A/5B + hardening-legado-caos-core 2026-05-31)
 | v5.0 — hardening-legado caos-core | **concluído (2026-05-31)** |
 | v5.0 — Sprint 5C (Registry v2.0) | pendente — após 30+ ciclos reais |
 | v5.1 — limpeza institucional | **concluído (2026-05-31)** |
-| v5.3 — Bootstrap Institucional Verificável | planejado |
+| v5.3 — Bootstrap Institucional Verificável | **concluído (2026-05-31)** |
+| v5.4 — Camada de Navegação Mínima (resumption-index v2.0) | **concluído (2026-06-03)** |
+| T5.2 — retomada real via resumption-index | **homologado (2026-06-03)** |
 | v6.0 — Indexação Relacional | proposta formalizada |
 | v5.5 — memória semântica SBERT | planejado |
 
 Cobertura de snapshots: 10 domínios (9 banco + 1 frontend)
 Nível de continuidade: Pleno
-Sprint 5C: 12/30 ciclos reais acumulados
+Sprint 5C: 15/30 ciclos reais acumulados
 caos-core: working tree limpo — v5.0 integralmente commitado
 
 ## MARCO DA FASE 5
