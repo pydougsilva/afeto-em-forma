@@ -1,6 +1,6 @@
 # resumption-index — Afeto em Forma
-# versao: 1.0
-# data: 2026-05-31
+# versao: 2.0
+# data: 2026-06-03
 # tipo: grafo_navegacao / camada_derivada
 # fonte: derivado exclusivamente de ciclos que satisfaçam todos os critérios:
 #   - ciclo CONCLUÍDO (estado final CONCLUÍDO, não FALHOU)
@@ -10,6 +10,11 @@
 #   NÃO atualizar a partir de ciclos FALHOU, sessões sem merge ou retomadas parciais
 # regra_de_uso: consultar apenas na Etapa 0b — não substitui snapshot, telemetria ou handoff
 # fallback: se entrada ausente ou confianca < média → r-recuperacao-contextual + index.md
+#
+# MUDANÇA v2.0 (T5.2 — 2026-06-03):
+#   snapshot_ref renomeado para snapshot_minimo.
+#   snapshot_minimo é o 5º elemento do caminho operacional — não metadado de proveniência.
+#   null = domínio sem telemetria diretamente localizável → usar r-recuperacao-contextual.
 
 dominios:
 
@@ -22,12 +27,12 @@ dominios:
       - rag/index.md
       - r/r-hotfix-padrao
       - k/frontend/k-fe-app-estrutura
-    snapshot_ref: telemetria-20260531-fix-sprint-d
+    snapshot_minimo: rag/docs/ciclos/telemetria/telemetria-20260531-fix-sprint-d.md
     confianca: alta
     notas: >
       App.jsx ~2311 linhas. Sprint D adicionou guest orders + Meus Pedidos.
       Fix corrigiu p.n->p.nome e telefone obrigatório no pedido manual.
-      Checar k-fe-app-estrutura (pode estar desatualizado: referencia 2179 linhas).
+      k-fe-app-estrutura.md desatualizado: referencia 2179 linhas — staleness conhecido.
 
   - id: public.pedidos
     familia: banco/operacional
@@ -38,12 +43,13 @@ dominios:
       - rag/index.md
       - r/r-rls-padrao
       - k/banco/k-db-tabelas-core
-    snapshot_ref: telemetria-20260531-sprint-d
+    snapshot_minimo: rag/docs/ciclos/telemetria/telemetria-20260531-sprint-d.md
     confianca: alta
     notas: >
       Schema suporta guest orders: user_id nullable, nome_cliente, telefone_cliente.
-      tenant_id vem de profile?.tenant_id (não de activeTenant).
-      Pré-verificação: constraint produtos_nome_categoria_unique (pode não ter tenant_id).
+      tenant_id vem de profile?.tenant_id (não de activeTenant). Função real do checkout:
+      handleCheckout (L1257) — submitPedido não existe.
+      Validado por T5.2: Fase A captura schema; snapshot_minimo necessário para Q2-Q4.
 
   - id: public.tenants
     familia: banco/plataforma
@@ -54,7 +60,7 @@ dominios:
       - rag/index.md
       - r/r-rls-padrao
       - k/banco/k-db-funcoes
-    snapshot_ref: telemetria-20260515-T-MT.1a-tenants
+    snapshot_minimo: rag/docs/ciclos/telemetria/telemetria-20260515-T-MT.1a-tenants.md
     confianca: média
     notas: >
       fn_provision_tenant + fn_handle_new_user v2 deployadas e funcionais.
@@ -70,10 +76,12 @@ dominios:
       - rag/index.md
       - r/r-rls-padrao
       - k/banco/k-db-funcoes
-    snapshot_ref: audit-logs-001
+    snapshot_minimo: null
     confianca: média
     notas: >
-      Primeiro ciclo real do C.A.O.S (2026-05-09). Referência histórica.
+      Primeiro ciclo real do C.A.O.S (2026-05-09). snapshot_minimo: null —
+      snapshot histórico em r/r-recuperacao-contextual.md (audit-logs-001);
+      usar r-recuperacao-contextual para localizar.
       Policies: audit_logs_select_tenant_admin + audit_logs_platform_admin.
 
   - id: public.profiles
@@ -85,14 +93,9 @@ dominios:
       - rag/index.md
       - r/r-rls-padrao
       - k/banco/k-db-tabelas-core
-    snapshot_ref: telemetria-20260515-T6.1a-profiles
+    snapshot_minimo: rag/docs/ciclos/telemetria/telemetria-20260515-T6.1a-profiles.md
     confianca: média
     notas: >
       profiles.id = auth.users.id (não é coluna separada).
       join usa profiles!user_id(nome,telefone) — não profiles.user_id.
       fn_custom_access_token_hook injeta role e tenant_id no JWT.
-
-# ── DOMÍNIOS SEM ENTRADA (não operados com ciclo validado nesta instância) ──
-# public.fornadas     → carregar via index.md tarefa "Multi-tenant"
-# public.produtos     → carregar via index.md tarefa "Catálogo"
-# public.itens_pedido → sempre co-operado com public.pedidos
