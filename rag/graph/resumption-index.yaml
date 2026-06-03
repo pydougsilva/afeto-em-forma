@@ -30,9 +30,9 @@ dominios:
     snapshot_minimo: rag/docs/ciclos/telemetria/telemetria-20260531-fix-sprint-d.md
     confianca: alta
     notas: >
-      App.jsx ~2311 linhas. Sprint D adicionou guest orders + Meus Pedidos.
+      App.jsx 2368 linhas. Sprint D adicionou guest orders + Meus Pedidos.
       Fix corrigiu p.n->p.nome e telefone obrigatório no pedido manual.
-      k-fe-app-estrutura.md desatualizado: referencia 2179 linhas — staleness conhecido.
+      k-fe-app-estrutura.md atualizado para v1.2 em 2026-06-03; referência atual: App.jsx 2368 linhas.
 
   - id: public.pedidos
     familia: banco/operacional

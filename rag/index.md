@@ -151,7 +151,7 @@ Todos os módulos v3.0 são aditivos. Sua ausência não quebra o sistema.
 
 | Arquivo | Versão | Finalidade |
 |---|---|---|
-| k-fe-app-estrutura | 1.0 | mapa estrutural do App.jsx (2179 linhas) |
+| k-fe-app-estrutura | 1.2 | mapa estrutural do App.jsx (2368 linhas) |
 | k-fe-checkout | — | fluxo de checkout e pedidos |
 | k-fe-auth-context | — | contexto de autenticação |
 
