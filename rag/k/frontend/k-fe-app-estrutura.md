@@ -1,5 +1,5 @@
 # k-fe-app-estrutura
-versao: 1.1
+versao: 1.2
 
 ## OBJETIVO
 
@@ -9,8 +9,8 @@ sem necessidade de leitura completa do arquivo.
 Responde à pergunta:
 "onde fica o quê no App.jsx?"
 
-App.jsx — versão 5.3 — 2.179 linhas
-Última atualização deste mapa: 2026-05-12
+App.jsx — versão 5.5 — 2.368 linhas
+Última atualização deste mapa: 2026-06-03
 
 ---
 
@@ -25,8 +25,8 @@ src/App.jsx
 ├── [L466-487]  SLOT DOTS (componente UI)
 ├── [L488-604]  AUTH SCREEN (modal login/cadastro)
 ├── [L605-805]  CADASTRO NEGÓCIO SCREEN (onboarding Fase 3)
-├── [L806-2167] AFETO EM FORMA APP (componente principal)
-└── [L2169-2179] ROOT / APP (export default)
+├── [L806-~2358] AFETO EM FORMA APP (componente principal)
+└── [L~2359-2368] ROOT / APP (export default)
 ```
 
 ---
@@ -169,7 +169,7 @@ activeTenant      — dados do tenant resolvido pela URL
 tenantLoading/Err — estado do carregamento do tenant
 ```
 
-### 7.3 — State admin (L836–L848)
+### 7.3 — State admin (L836–L860 aprox.)
 ```
 adminTab          — aba ativa: "fornadas" | "pedidos" | "catalogo" | "relatorios" | "plataforma"
 pedidosReais      — lista de pedidos (admin)
@@ -180,6 +180,16 @@ confirmandoId     — ID do pedido sendo confirmado (previne duplo-clique)
 newFornada        — form de nova fornada: { data, obs, cap_pao, cap_biscoito }
 prodModal         — produto em edição no painel admin (null = fechado)
 prodSaving        — salvando produto
+novoGuestPedido   — form "+ Pedido Manual" visível/oculto (Sprint D)
+guestForm         — { nome, telefone, produtoId, fornada_id, quantidade }
+guestErr          — erro no form de pedido manual
+guestSaving       — salvando pedido manual
+```
+
+### 7.3b — State cliente logado (Sprint D)
+```
+meusPedidos       — lista de pedidos do cliente logado
+loadMeusPedidos   — carregando histórico do cliente
 ```
 
 ### 7.4 — State relatórios (L852–L860)
@@ -193,14 +203,16 @@ relFornadas       — array de { data, pedidos, faturamento }
 relLoading        — carregando relatório
 ```
 
-### 7.5 — Fetches principais (L890–L1095)
+### 7.5 — Fetches principais (L890–L1110 aprox.)
 ```
-resolveTenant()   — resolve tenant pelo slug da URL (tabela: tenant_public view)
-fetchFornadas()   — busca fornadas ativas com ocupação — já filtra por activeTenant.id ✓
-fetchProdutos()   — busca catálogo — já filtra por activeTenant.id ✓
-fetchPedidos()    — busca pedidos do tenant (admin only)
+resolveTenant()      — resolve tenant pelo slug da URL (tabela: tenant_public view)
+fetchFornadas()      — busca fornadas ativas com ocupação — já filtra por activeTenant.id ✓
+fetchProdutos()      — busca catálogo — já filtra por activeTenant.id ✓
+fetchPedidos()       — busca pedidos do tenant (admin only)
 fetchPlatformTenants() — busca todos tenants (platform_admin only)
-fetchRelatorios() — agrega KPIs, vendas diárias, top produtos, por fornada
+fetchRelatorios()    — agrega KPIs, vendas diárias, top produtos, por fornada
+criarPedidoManual()  — cria pedido guest (admin): user_id=null, nome_cliente, telefone_cliente (Sprint D)
+fetchMeusPedidos()   — busca pedidos do cliente logado: .eq("user_id", session.user.id) (Sprint D)
 ```
 
 **FASE 3 CONCLUÍDO (T-MT.1b, 2026-05-15):**
@@ -218,12 +230,14 @@ useEffect(() => {
 }, [activeTenant]);
 ```
 
-### 7.6 — Actions (L1121–L1270)
+### 7.6 — Actions (L1121–L1290 aprox.)
 ```
 handleConfirmar(pedidoId)  — confirma pedido (admin): pedidos.update(status: "confirmado")
 handleSaveFornada(id,campos) — salva/cria fornada: fornadas.update | fornadas.insert
 handleSaveProduto()        — salva/cria produto (admin): produtos.update | produtos.insert
-submitPedido()             — submete pedido público: pedidos.insert + itens_pedido.insert
+handleCheckout()           — submete pedido público: pedidos.insert + itens_pedido.insert (L1257)
+                             ATENÇÃO: função real é handleCheckout, não submitPedido (não existe)
+                             tenant_id: profile?.tenant_id (não de activeTenant) — L1274
 ```
 
 **Join obrigatório em queries de pedido:**
@@ -236,14 +250,14 @@ submitPedido()             — submete pedido público: pedidos.insert + itens_p
 | Tab | Exibe | Tabelas |
 |---|---|---|
 | fornadas | grid de fornadas + form de nova fornada | fornadas |
-| pedidos | lista de pedidos com botão confirmar | pedidos + profiles |
+| pedidos | lista de pedidos + botão "+ Pedido Manual" (Sprint D) + form guest inline | pedidos + profiles |
 | catalogo | grid de produtos + modal de edição | produtos |
 | relatorios | KPIs + gráficos (Recharts) | pedidos + itens_pedido |
 | plataforma | lista de tenants (só platform_admin) | tenants |
 
 ---
 
-## SEÇÃO 8 — ROOT / APP (L2169–L2179)
+## SEÇÃO 8 — ROOT / APP (L~2359–2368)
 
 ```javascript
 export default function App() {
@@ -256,8 +270,11 @@ export default function App() {
 }
 ```
 
-`CSS` é uma string de estilos inline definida em algum ponto anterior a L2169.
+`CSS` é uma string de estilos inline definida antes de L~2359.
 A paleta usa variáveis CSS: `--pr` (cor primária), `--ac` (acento), `--mu` (muted).
+
+**Sprint D adicionou antes do footer (cliente logado não-admin):**
+Seção "📦 Meus Pedidos" — lista histórico de pedidos do usuário logado.
 
 ---
 
@@ -281,14 +298,17 @@ A paleta usa variáveis CSS: `--pr` (cor primária), `--ac` (acento), `--mu` (mu
 
 ---
 
-## PENDÊNCIAS CONHECIDAS (atualizado 2026-05-15)
+## PENDÊNCIAS CONHECIDAS (atualizado 2026-06-03)
 
 | Item | Localização | Status |
 |---|---|---|
 | Routing por slug para acesso público | fetchFornadas/Produtos + vercel.json | **CONCLUÍDO** T-MT.1b |
 | Branding white-label por tenant (cores) | useEffect CSS vars | **CONCLUÍDO** T-MT.1b |
 | Header localização dinâmica | activeTenant.cidade/estado | **CONCLUÍDO** T-MT.1b |
+| Guest orders — pedido manual admin | criarPedidoManual + tab pedidos | **CONCLUÍDO** Sprint D |
+| Meus Pedidos — histórico cliente logado | fetchMeusPedidos + seção UI | **CONCLUÍDO** Sprint D |
+| Display nome_cliente/telefone_cliente no card admin | porder-nm div | **CONCLUÍDO** fix Sprint D |
 | Integração fn_provision_tenant | CadastroNegocioScreen L~750 | Edge Function existe, fluxo UI parcial |
-| Botão confirmar pedido (cliente) | AfetoEmFormaApp UI | TODO Fase 3 |
-| signUp de clientes com tenant_id via slug | AuthScreen + AuthProvider | IMPLEMENTADO — aguarda teste em produção |
-| Constraint produtos (nome, categoria) sem tenant_id | banco — verificar | VERIFICAR antes do próximo ciclo em produtos |
+| signUp de clientes com tenant_id via slug | AuthScreen + AuthProvider | IMPLEMENTADO — aguarda SMTP real |
+| Constraint produtos (nome, categoria) sem tenant_id | banco | **VERIFICADO 2026-06-03** — constraint não existe, sem risco |
+| vagas_fornada view — security_invoker | banco | **VERIFICADO 2026-06-03** — SECURITY INVOKER por padrão, seguro |
